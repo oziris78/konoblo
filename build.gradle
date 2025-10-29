@@ -1,0 +1,75 @@
+
+
+// -------------------------- \\
+// ---- TWISTRAL STUDIOS ---- \\
+// -------------------------- \\
+
+
+plugins {
+    id 'java'
+    id 'maven'
+}
+
+
+group 'com.github.oziris78'
+version '0.0.1'
+
+targetCompatibility = 1.8
+sourceCompatibility = 1.8 // java 8
+
+
+repositories {
+    mavenCentral()
+
+    maven { url "https://jitpack.io" }
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+}
+
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+
+test{
+    useJUnitPlatform()
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none,-missing', '-quiet')
+        }
+    }
+}
+
+if(JavaVersion.current().isJava9Compatible()) {
+    allprojects {
+        tasks.withType(JavaCompile) {
+            options.release.set(7)
+        }
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+wrapper {
+    gradleVersion = "6.9"
+    distributionType = Wrapper.DistributionType.ALL
+}
