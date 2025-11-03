@@ -18,8 +18,8 @@ package com.twistral.konoblo;
 public class Test {
 
     public static void main(String[] args) {
-        Importable importable = new Importable();
-        importable.f();
+        KonobloConsole console = new KonobloConsole();
+        console.run();
     }
 
 }
