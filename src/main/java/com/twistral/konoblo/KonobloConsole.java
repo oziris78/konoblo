@@ -26,15 +26,18 @@ public class KonobloConsole {
             "customize or disable this message with setGreetingText(String) method.";
 
     private final PrintStream outStream, errStream;
-    private Runnable exitFunction;
+    private final boolean ownsStreams;
+
     private String greetingText;
+    private Runnable exitFunction;
 
 
     //////////////////////////////////////////////////////////////////////////
     /////////////////////////////  CONSTRUCTORS  /////////////////////////////
     //////////////////////////////////////////////////////////////////////////
 
-    public KonobloConsole(PrintStream outStream, PrintStream errStream) {
+    private KonobloConsole(PrintStream outStream, PrintStream errStream, boolean ownsStreams) {
+        this.ownsStreams = ownsStreams;
         this.outStream = outStream;
         this.errStream = errStream;
 
@@ -42,12 +45,16 @@ public class KonobloConsole {
         this.exitFunction = null;
     }
 
+    public KonobloConsole(PrintStream outStream, PrintStream errStream) {
+        this(outStream, errStream, true);
+    }
+
     public KonobloConsole(PrintStream outAndErrStream) {
-        this(outAndErrStream, outAndErrStream);
+        this(outAndErrStream, outAndErrStream, true);
     }
 
     public KonobloConsole() {
-        this(System.out, System.err);
+        this(System.out, System.err, false);
     }
 
 
@@ -61,8 +68,16 @@ public class KonobloConsole {
 
         // some stuff
 
-        if(this.exitFunction != null) {
+        if (this.exitFunction != null) {
             this.exitFunction.run();
+        }
+
+        if (ownsStreams) {
+            boolean usesSameStream = outStream.equals(errStream);
+            this.outStream.close();
+            if (!usesSameStream) {
+                this.errStream.close();
+            }
         }
     }
 
