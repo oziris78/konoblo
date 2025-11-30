@@ -17,7 +17,13 @@ package com.twistral.konoblo;
 
 
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Scanner;
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 
 public class KonobloConsole {
@@ -25,9 +31,17 @@ public class KonobloConsole {
     private static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
             "customize or disable this message with setGreetingText(String) method.";
 
-    private final PrintStream outStream, errStream;
-    private final boolean ownsStreams;
+    // State Related Objects
+    private final HashMap<String, State> states;
+    private final Stack<String> stateStack;
+    private String entryStateID;
 
+    // IO Objects
+    private final PrintStream outStream, errStream;
+    private final boolean ownsScanner, ownsStreams;
+    private final Scanner scanner;
+
+    // Misc Objects
     private String greetingText;
     private Runnable exitFunction;
 
@@ -36,25 +50,41 @@ public class KonobloConsole {
     /////////////////////////////  CONSTRUCTORS  /////////////////////////////
     //////////////////////////////////////////////////////////////////////////
 
-    private KonobloConsole(PrintStream outStream, PrintStream errStream, boolean ownsStreams) {
+
+    private KonobloConsole(PrintStream outStream, PrintStream errStream, boolean ownsStreams,
+                           Scanner scanner, boolean ownsScanner)
+    {
         this.ownsStreams = ownsStreams;
+        this.ownsScanner = ownsScanner;
         this.outStream = outStream;
         this.errStream = errStream;
+        this.scanner = scanner;
 
         this.greetingText = DEF_GREETING_TEXT;
+        this.states = new HashMap<>(64);
+        this.stateStack = new Stack<>();
         this.exitFunction = null;
+        this.entryStateID = null;
     }
 
     public KonobloConsole(PrintStream outStream, PrintStream errStream) {
-        this(outStream, errStream, true);
+        this(outStream, errStream, true, new Scanner(System.in), false);
     }
 
     public KonobloConsole(PrintStream outAndErrStream) {
-        this(outAndErrStream, outAndErrStream, true);
+        this(outAndErrStream, outAndErrStream, true, new Scanner(System.in), false);
+    }
+
+    public KonobloConsole(PrintStream outStream, PrintStream errStream, Scanner scanner) {
+        this(outStream, errStream, true, scanner, true);
+    }
+
+    public KonobloConsole(PrintStream outAndErrStream, Scanner scanner) {
+        this(outAndErrStream, outAndErrStream, true, scanner, true);
     }
 
     public KonobloConsole() {
-        this(System.out, System.err, false);
+        this(System.out, System.err, false, new Scanner(System.in), false);
     }
 
 
@@ -63,14 +93,46 @@ public class KonobloConsole {
     /////////////////////////////////////////////////////////////////////
 
 
-    public void run() {
-        this.outStream.println(this.greetingText);
+    public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Supplier<String> director) {
+        if (this.states.containsKey(ID))
+            throw new KonobloException("Duplicate state ID: %s.", ID);
 
-        // some stuff
+        this.states.put(ID, new State(ID, function, director));
 
-        if (this.exitFunction != null) {
-            this.exitFunction.run();
+        // First time defining a state
+        if (entryStateID == null) {
+            this.entryStateID = ID;
         }
+
+        return this;
+    }
+
+    public void run() {
+        this.println(this.greetingText);
+
+        this.stateStack.push(entryStateID);
+        while (true) {
+            String currentStateID = this.stateStack.peek();
+
+            if (currentStateID == "EXIT") {
+                break;
+            }
+
+            if (!this.states.containsKey(currentStateID)) {
+                throw new KonobloException("No state with an ID of %s was found.", currentStateID);
+            }
+
+            State currentState = this.states.get(currentStateID);
+            currentState.function.accept(this);
+            String nextStateID = currentState.director.get();
+            this.stateStack.push(nextStateID);
+        }
+
+        if (this.exitFunction != null)
+            this.exitFunction.run();
+
+        if (ownsScanner)
+            this.scanner.close();
 
         if (ownsStreams) {
             boolean usesSameStream = outStream.equals(errStream);
@@ -80,6 +142,34 @@ public class KonobloConsole {
             }
         }
     }
+
+
+
+    public int readInt(int min, int max) {
+        int input = 0;
+        String line = "";
+        while (true) {
+            try {
+                line = scanner.nextLine();
+                input = Integer.parseInt(line);
+
+                if(min <= input && input <= max) {
+                    return input;
+                }
+
+                this.errorf("Input must be in range [%d,%d], your input was: %d\n", min, max, input);
+            }
+            catch (Exception ignored) {
+                this.errorf("Invalid input: %s\n", line);
+            }
+        }
+    }
+
+
+    public int readInt() {
+        return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
 
     /* PRINTING METHODS: BINDINGS FOR OUTSTREAM */
     public void printf(Locale l, String format, Object... args) { outStream.printf(l, format, args); }
@@ -120,6 +210,9 @@ public class KonobloConsole {
 
     public void setExitFunction(Runnable exitFunction) { this.exitFunction = exitFunction; }
     public Runnable getExitFunction() { return exitFunction; }
+
+    public void setEntryStateID(String entryStateID) { this.entryStateID = entryStateID; }
+    public String getEntryStateID() { return entryStateID; }
 
 
     /////////////////////////////////////////////////////////////////////

@@ -15,21 +15,14 @@
 
 package com.twistral.konoblo;
 
+class KonobloException extends RuntimeException {
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-
-class State {
-    public final String ID;
-    public final Consumer<KonobloConsole> function;
-    public final Supplier<String> director;
-
-    State(String ID, Consumer<KonobloConsole> function, Supplier<String> director) {
-        this.function = function;
-        this.director = director;
-        this.ID = ID;
+    public KonobloException(String format, Object... args) {
+        super(String.format(format, args));
     }
+
+    public KonobloException(String text) {
+        super(text);
+    }
+
 }
-
-
