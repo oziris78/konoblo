@@ -46,9 +46,9 @@ public class KonobloConsole {
     private Runnable exitFunction;
 
 
-    //////////////////////////////////////////////////////////////////////////
-    /////////////////////////////  CONSTRUCTORS  /////////////////////////////
-    //////////////////////////////////////////////////////////////////////////
+    /*//////////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  CONSTRUCTORS  ///////////////////////////*/
+    /*//////////////////////////////////////////////////////////////////////*/
 
 
     private KonobloConsole(PrintStream outStream, PrintStream errStream, boolean ownsStreams,
@@ -88,12 +88,16 @@ public class KonobloConsole {
     }
 
 
-    /////////////////////////////////////////////////////////////////////
-    /////////////////////////////  METHODS  /////////////////////////////
-    /////////////////////////////////////////////////////////////////////
+    /*/////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  METHODS  ///////////////////////////*/
+    /*/////////////////////////////////////////////////////////////////*/
 
 
     public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Supplier<String> director) {
+        if (ID == null)
+            throw new KonobloException("State ID can't be null.");
+        if (director == null)
+            throw new KonobloException("State director can't be null.");
         if (this.states.containsKey(ID))
             throw new KonobloException("Duplicate state ID: %s.", ID);
 
@@ -123,7 +127,11 @@ public class KonobloConsole {
             }
 
             State currentState = this.states.get(currentStateID);
-            currentState.function.accept(this);
+
+            if (currentState.function != null) {
+                currentState.function.accept(this);
+            }
+
             String nextStateID = currentState.director.get();
             this.stateStack.push(nextStateID);
         }
@@ -171,39 +179,35 @@ public class KonobloConsole {
     }
 
 
+
+    /*//////////////////////////////////////////////////////////////////////*/
+    /*/////////////////////  PRINTING & ERROR METHODS  /////////////////////*/
+    /*//////////////////////////////////////////////////////////////////////*/
+
+    // IMPORTANT NOTE: instead of overriding every print(...) and println(...) function inside
+    // PrintStream class I only added foo(Object) and foo() methods for simplicity. This wont cause
+    // any performance problems since PrintStream's API was written in 1995 and Java has autoboxing
+    // since that time. These methods point to the same functions in one way or another anyways.
+
     /* PRINTING METHODS: BINDINGS FOR OUTSTREAM */
     public void printf(Locale l, String format, Object... args) { outStream.printf(l, format, args); }
     public void printf(String format, Object... args) { outStream.printf(format, args); }
-    public void println(int x) { outStream.println(x); }
-    public void println(char x) { outStream.println(x); }
-    public void println(long x) { outStream.println(x); }
-    public void println(float x) { outStream.println(x); }
-    public void println(char... x) { outStream.println(x); }
-    public void println(double x) { outStream.println(x); }
     public void println(Object x) { outStream.println(x); }
-    public void println(String x) { outStream.println(x); }
-    public void println(boolean x) { outStream.println(x); }
     public void println() { outStream.println(); }
+    public void print(Object x) { outStream.print(x); }
 
-
-    /* ERROR METHODS */
+    /* ERROR METHODS: BINDINGS FOR ERRSTREAM */
     public void errorf(Locale l, String format, Object... args) { errStream.printf(l, format, args); }
     public void errorf(String format, Object... args) { errStream.printf(format, args); }
-    public void errorln(int x) { errStream.println(x); }
-    public void errorln(char x) { errStream.println(x); }
-    public void errorln(long x) { errStream.println(x); }
-    public void errorln(float x) { errStream.println(x); }
-    public void errorln(char... x) { errStream.println(x); }
-    public void errorln(double x) { errStream.println(x); }
     public void errorln(Object x) { errStream.println(x); }
-    public void errorln(String x) { errStream.println(x); }
-    public void errorln(boolean x) { errStream.println(x); }
     public void errorln() { errStream.println(); }
+    public void error(Object x) { errStream.print(x); }
 
 
-    ///////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////  GETTERS & SETTERS  /////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////
+
+    /*///////////////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  GETTERS & SETTERS  ///////////////////////////*/
+    /*///////////////////////////////////////////////////////////////////////////*/
 
     public void setGreetingText(String greetingText) { this.greetingText = greetingText; }
     public String getGreetingText() { return greetingText; }
@@ -215,9 +219,10 @@ public class KonobloConsole {
     public String getEntryStateID() { return entryStateID; }
 
 
-    /////////////////////////////////////////////////////////////////////
-    /////////////////////////////  HELPERS  /////////////////////////////
-    /////////////////////////////////////////////////////////////////////
+
+    /*//////////////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  HELPER FUNCTIONS  ///////////////////////////*/
+    /*//////////////////////////////////////////////////////////////////////////*/
 
 
 
