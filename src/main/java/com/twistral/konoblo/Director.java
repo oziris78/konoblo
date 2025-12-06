@@ -15,20 +15,19 @@
 
 package com.twistral.konoblo;
 
+import java.util.function.Supplier;
 
-import java.util.function.*;
 
+class Director {
+    public final DirectorType type;
+    public final Supplier<String> nextIDSupplier;
 
-class State {
-    public final Consumer<KonobloConsole> function;
-    public final Director director;
-    public final String ID;
+    Director(DirectorType type, Supplier<String> nextIDSupplier) {
+        this.nextIDSupplier = nextIDSupplier;
+        this.type = type;
+    }
 
-    State(String ID, Consumer<KonobloConsole> function, Director director) {
-        this.function = function;
-        this.director = director;
-        this.ID = ID;
+    static enum DirectorType {
+        EXIT, BACK, NEXT, SEP_INT, SEP_STR
     }
 }
-
-

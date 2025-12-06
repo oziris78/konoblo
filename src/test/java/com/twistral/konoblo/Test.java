@@ -17,30 +17,26 @@ package com.twistral.konoblo;
 
 import java.util.Scanner;
 
+import static com.twistral.konoblo.KonobloConsole.*;
+
 public class Test {
 
-    public static void mul(KonobloConsole cns) {
-        cns.println("Enter number #1: ");
-        int x = cns.readInt();
-        cns.println("Enter number #2: ");
-        int y = cns.readInt();
-        cns.printf("%d * %d = %d\n", x, y, x*y);
-    }
-
     public static void add(KonobloConsole cns) {
-        cns.println("Enter number #1: ");
-        int x = cns.readInt();
-        cns.println("Enter number #2: ");
-        int y = cns.readInt();
+        int x = cns.readInt("Enter number #1: ");
+        int y = cns.readInt("Enter number #2: ");
         cns.printf("%d + %d = %d\n", x, y, x+y);
     }
 
     public static void sub(KonobloConsole cns) {
-        cns.println("Enter number #1: ");
-        int x = cns.readInt();
-        cns.println("Enter number #2: ");
-        int y = cns.readInt();
+        int x = cns.readInt("Enter number #1: ");
+        int y = cns.readInt("Enter number #2: ");
         cns.printf("%d - %d = %d\n", x, y, x-y);
+    }
+
+    public static void mul(KonobloConsole cns) {
+        int x = cns.readInt("Enter number #1: ");
+        int y = cns.readInt("Enter number #2: ");
+        cns.printf("%d * %d = %d\n", x, y, x*y);
     }
 
     public static void mainMenu(KonobloConsole cns) {
@@ -49,12 +45,15 @@ public class Test {
         cns.println("2. Subtraction");
         cns.println("3. Multiplication");
         cns.println("4. Fibonacci");
-        cns.printf("Your choice: ");
+        cns.print("Your choice: ");
+    }
+
+    public static void fiboMenu(KonobloConsole cns) {
+        cns.printf("Do you want to see all steps (0 for no, 1 for yes): ");
     }
 
     public static void fiboLast(KonobloConsole cns) {
-        cns.println("Enter number: ");
-        int x = cns.readInt(2, Integer.MAX_VALUE);
+        int x = cns.readInt("Enter number: ", 2, Integer.MAX_VALUE);
         int a = 0, b = 1;
         for (int i = 2; i <= x; i++) {
             int next = a + b;
@@ -64,13 +63,8 @@ public class Test {
         cns.printf("Fibonacci(%d) = %d\n", x, b);
     }
 
-    public static void fiboMenu(KonobloConsole cns) {
-        cns.printf("Do you want to see all steps (0 for no, 1 for yes): ");
-    }
-
     public static void fiboAll(KonobloConsole cns) {
-        cns.println("Enter number: ");
-        int x = cns.readInt(2, Integer.MAX_VALUE);
+        int x = cns.readInt("Enter number: ", 2, Integer.MAX_VALUE);
         int a = 0, b = 1;
         cns.printf("Fibonacci(0) = 0\n");
         cns.printf("Fibonacci(1) = 1\n");
@@ -83,38 +77,20 @@ public class Test {
     }
 
     public static void main(String[] args) {
-        KonobloConsole cns = new KonobloConsole();
+        final KonobloConsole cns = new KonobloConsole();
 
         cns.setExitFunction(() -> {
             cns.println("Thanks for using this program!");
         });
 
-        cns.define("#A", Test::mainMenu, () -> {
-            cns.println("Enter option 1-4: ");
-            int x = cns.readInt(1, 4);
-            return x == 1 ? "#A1" : x == 2 ? "#A2" : x == 3 ? "#A3" : "#A4";
-        });
+        cns.define("#A", Test::mainMenu, cns.sepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
+               .define("#A1", Test::add, cns.back(1))
+               .define("#A2", Test::sub, cns.next("#A"))
+               .define("#A3", Test::mul, cns.exit())
+               .define("#A4", Test::fiboMenu, cns.sepInt(0, 1, "#A4.1", "#A4.2"))
+                   .define("#A4.1", Test::fiboLast, cns.exit())
+                   .define("#A4.2", Test::fiboAll, cns.exit());
 
-        cns.define("#A1", Test::add, () -> "#A");
-        cns.define("#A2", Test::sub, () -> "#A");
-        cns.define("#A3", Test::mul, () -> "EXIT");
-
-        cns.define("#A4", Test::fiboMenu, () -> {
-            int x = cns.readInt(0, 1);
-            return x == 0 ? "#A4.1" : "#A4.2";
-        });
-
-        cns.define("#A4.1", Test::fiboLast, () -> "EXIT");
-        cns.define("#A4.2", Test::fiboAll, () -> "EXIT");
-/*
-        cns.intMenu("#A", 1, 4, Test::mainMenu)
-            .option("#A1", Test::add, BACK)
-            .option("#A2", Test::sub, BACK)
-            .option("#A3", Test::mul, EXIT)
-            .intMenu("#A4", 0, 1, Test::fiboMenu)
-                .option("#A4.1", Test::fiboLast, EXIT)
-                .option("#A4.2", Test::fiboAll, EXIT);
-*/
         cns.run();
     }
 
