@@ -173,7 +173,7 @@ public class KonobloConsole {
 
             if (nextIndex < 0) {
                 throw new KonobloException(
-                        "State stack cant go back %d times when it has %d elements.", n, m);
+                    "State stack cant go back %d times when it has %d elements.", n, m);
             }
 
             return stateStack.get(nextIndex);
@@ -233,7 +233,6 @@ public class KonobloConsole {
     public int readInt() {
         return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
-
 
     public int readInt(Object text) {
         this.print(text);
