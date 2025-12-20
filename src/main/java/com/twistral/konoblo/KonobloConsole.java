@@ -32,6 +32,9 @@ public class KonobloConsole {
     private final Stack<String> stateStack;
     private String entryStateID;
 
+    // Data (Object Instance) Storage
+    private final HashMap<String, Object> storage;
+
     // IO Objects
     private final PrintStream outStream, errStream;
     private final boolean ownsScanner, ownsStreams;
@@ -58,6 +61,7 @@ public class KonobloConsole {
 
         this.greetingText = DEF_GREETING_TEXT;
         this.states = new HashMap<>(64);
+        this.storage = new HashMap<>(64);
         this.stateStack = new Stack<>();
         this.exitFunction = () -> {};
         this.entryStateID = null;
@@ -109,6 +113,7 @@ public class KonobloConsole {
 
         return this;
     }
+
 
     public void run() {
         this.println(this.greetingText);
@@ -234,6 +239,7 @@ public class KonobloConsole {
         return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
+
     public int readInt(Object text) {
         this.print(text);
         return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -243,6 +249,45 @@ public class KonobloConsole {
     public int readInt(Object text, int min, int max) {
         this.print(text);
         return this.readInt(min, max);
+    }
+
+
+    /*/////////////////////////////////////////////////////////////////*/
+    /*///////////////////////  STORAGE METHODS  ///////////////////////*/
+    /*/////////////////////////////////////////////////////////////////*/
+
+    public void storeObject(String objectID, Object object) {
+        this.storage.put(objectID, object);
+    }
+
+
+    public <T> T getObject(String objectID, Class<T> objectClass) {
+        if (!this.storage.containsKey(objectID)) {
+            throw new KonobloException("ID=%s was not found in the storage.", objectID);
+        }
+
+        final Object object = this.storage.get(objectID);
+
+        if (!objectClass.isInstance(object)) {
+            throw new KonobloException(
+                "ID=%s holds %s, cannot cast into %s.", objectID,
+                object.getClass().getName(), objectClass.getName()
+            );
+        }
+
+        return objectClass.cast(object);
+    }
+
+
+    public void removeObject(String objectID) {
+        storage.remove(objectID);
+    }
+
+
+    public void clearObjects() {
+        for (String objectID : this.storage.keySet()) {
+            removeObject(objectID);
+        }
     }
 
 
