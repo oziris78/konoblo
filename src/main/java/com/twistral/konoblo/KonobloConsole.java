@@ -196,6 +196,30 @@ public class KonobloConsole {
         });
     }
 
+    public Director sepStr(String[] inputs, String[] options) {
+        if (inputs.length != options.length) {
+            throw new KonobloException(
+                "Both arrays must have the same number of items: %d != %d.",
+                inputs.length, options.length
+            );
+        }
+
+        return new Director(DirectorType.SEP_STR, () -> {
+            final String selectedID = readString(inputs);
+
+            int selectedIndex = 0;
+            while (selectedIndex < inputs.length) {
+                if (inputs[selectedIndex].equals(selectedID)) {
+                    break;
+                }
+
+                selectedIndex++;
+            }
+
+            return options[selectedIndex];
+        });
+    }
+
 
     /*///////////////////////////////////////////////////////////////////*/
     /*/////////////////////  READING INPUT METHODS  /////////////////////*/
@@ -249,6 +273,11 @@ public class KonobloConsole {
     public int readInt(Object text, int min, int max) {
         this.print(text);
         return this.readInt(min, max);
+    }
+
+
+    private String readString(String... allowedInputs) {
+        return null;
     }
 
 
