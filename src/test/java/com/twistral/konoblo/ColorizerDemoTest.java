@@ -27,64 +27,6 @@ import static com.twistral.konoblo.Colorizer.*;
 
 public class ColorizerDemoTest {
 
-    private static final HashMap<String, Supplier<String>> effectFuncs = new HashMap<>();
-    {
-        effectFuncs.put("EF_NONE", Colorizer::EF_NONE);
-        effectFuncs.put("EF_CLEAR", Colorizer::EF_CLEAR);
-        effectFuncs.put("EF_BOLD", Colorizer::EF_BOLD);
-        effectFuncs.put("EF_DIM", Colorizer::EF_DIM);
-        effectFuncs.put("EF_ITALIC", Colorizer::EF_ITALIC);
-        effectFuncs.put("EF_UNDERLINE", Colorizer::EF_UNDERLINE);
-        effectFuncs.put("EF_SLOW_BLINK", Colorizer::EF_SLOW_BLINK);
-        effectFuncs.put("EF_RAPID_BLINK", Colorizer::EF_RAPID_BLINK);
-        effectFuncs.put("EF_REVERSE", Colorizer::EF_REVERSE);
-        effectFuncs.put("EF_HIDDEN", Colorizer::EF_HIDDEN);
-        effectFuncs.put("EF_STRIKETHROUGH", Colorizer::EF_STRIKETHROUGH);
-        effectFuncs.put("EF_FRAMED", Colorizer::EF_FRAMED);
-        effectFuncs.put("EF_ENCIRCLED", Colorizer::EF_ENCIRCLED);
-        effectFuncs.put("EF_OVERLINED", Colorizer::EF_OVERLINED);
-    }
-
-    private static final HashMap<String, Supplier<String>> foregroundFuncs = new HashMap<>();
-    {
-        foregroundFuncs.put("FG_BLACK", Colorizer::FG_BLACK);
-        foregroundFuncs.put("FG_RED", Colorizer::FG_RED);
-        foregroundFuncs.put("FG_GREEN", Colorizer::FG_GREEN);
-        foregroundFuncs.put("FG_YELLOW", Colorizer::FG_YELLOW);
-        foregroundFuncs.put("FG_BLUE", Colorizer::FG_BLUE);
-        foregroundFuncs.put("FG_MAGENTA", Colorizer::FG_MAGENTA);
-        foregroundFuncs.put("FG_CYAN", Colorizer::FG_CYAN);
-        foregroundFuncs.put("FG_WHITE", Colorizer::FG_WHITE);
-        foregroundFuncs.put("FG_BLACK_BRIGHT", Colorizer::FG_BLACK_BRIGHT);
-        foregroundFuncs.put("FG_RED_BRIGHT", Colorizer::FG_RED_BRIGHT);
-        foregroundFuncs.put("FG_GREEN_BRIGHT", Colorizer::FG_GREEN_BRIGHT);
-        foregroundFuncs.put("FG_YELLOW_BRIGHT", Colorizer::FG_YELLOW_BRIGHT);
-        foregroundFuncs.put("FG_BLUE_BRIGHT", Colorizer::FG_BLUE_BRIGHT);
-        foregroundFuncs.put("FG_MAGENTA_BRIGHT", Colorizer::FG_MAGENTA_BRIGHT);
-        foregroundFuncs.put("FG_CYAN_BRIGHT", Colorizer::FG_CYAN_BRIGHT);
-        foregroundFuncs.put("FG_WHITE_BRIGHT", Colorizer::FG_WHITE_BRIGHT);
-    }
-
-    private static final HashMap<String, Supplier<String>> backgroundFuncs = new HashMap<>();
-    {
-        backgroundFuncs.put("BG_BLACK", Colorizer::BG_BLACK);
-        backgroundFuncs.put("BG_RED", Colorizer::BG_RED);
-        backgroundFuncs.put("BG_GREEN", Colorizer::BG_GREEN);
-        backgroundFuncs.put("BG_YELLOW", Colorizer::BG_YELLOW);
-        backgroundFuncs.put("BG_BLUE", Colorizer::BG_BLUE);
-        backgroundFuncs.put("BG_MAGENTA", Colorizer::BG_MAGENTA);
-        backgroundFuncs.put("BG_CYAN", Colorizer::BG_CYAN);
-        backgroundFuncs.put("BG_WHITE", Colorizer::BG_WHITE);
-        backgroundFuncs.put("BG_BLACK_BRIGHT", Colorizer::BG_BLACK_BRIGHT);
-        backgroundFuncs.put("BG_RED_BRIGHT", Colorizer::BG_RED_BRIGHT);
-        backgroundFuncs.put("BG_GREEN_BRIGHT", Colorizer::BG_GREEN_BRIGHT);
-        backgroundFuncs.put("BG_YELLOW_BRIGHT", Colorizer::BG_YELLOW_BRIGHT);
-        backgroundFuncs.put("BG_BLUE_BRIGHT", Colorizer::BG_BLUE_BRIGHT);
-        backgroundFuncs.put("BG_MAGENTA_BRIGHT", Colorizer::BG_MAGENTA_BRIGHT);
-        backgroundFuncs.put("BG_CYAN_BRIGHT", Colorizer::BG_CYAN_BRIGHT);
-        backgroundFuncs.put("BG_WHITE_BRIGHT", Colorizer::BG_WHITE_BRIGHT);
-    }
-
 
     @Test
     @DisplayName("effectTest")
@@ -173,6 +115,7 @@ public class ColorizerDemoTest {
 
     }
 
+
     @Test
     @DisplayName("indexedColorTest")
     void indexedColorTest() {
@@ -206,9 +149,68 @@ public class ColorizerDemoTest {
                 fx, bx, colorize("Hello world!", bg, fg)
             );
         }
+    }
 
 
 
+    /*//////////////////////////////////////////////*/
+
+    private static final HashMap<String, Supplier<String>> effectFuncs = new HashMap<>();
+    {
+        effectFuncs.put("EF_NONE", Colorizer::EF_NONE);
+        effectFuncs.put("EF_CLEAR", Colorizer::EF_CLEAR);
+        effectFuncs.put("EF_BOLD", Colorizer::EF_BOLD);
+        effectFuncs.put("EF_DIM", Colorizer::EF_DIM);
+        effectFuncs.put("EF_ITALIC", Colorizer::EF_ITALIC);
+        effectFuncs.put("EF_UNDERLINE", Colorizer::EF_UNDERLINE);
+        effectFuncs.put("EF_SLOW_BLINK", Colorizer::EF_SLOW_BLINK);
+        effectFuncs.put("EF_RAPID_BLINK", Colorizer::EF_RAPID_BLINK);
+        effectFuncs.put("EF_REVERSE", Colorizer::EF_REVERSE);
+        effectFuncs.put("EF_HIDDEN", Colorizer::EF_HIDDEN);
+        effectFuncs.put("EF_STRIKETHROUGH", Colorizer::EF_STRIKETHROUGH);
+        effectFuncs.put("EF_FRAMED", Colorizer::EF_FRAMED);
+        effectFuncs.put("EF_ENCIRCLED", Colorizer::EF_ENCIRCLED);
+        effectFuncs.put("EF_OVERLINED", Colorizer::EF_OVERLINED);
+    }
+
+    private static final HashMap<String, Supplier<String>> foregroundFuncs = new HashMap<>();
+    {
+        foregroundFuncs.put("FG_BLACK", Colorizer::FG_BLACK);
+        foregroundFuncs.put("FG_RED", Colorizer::FG_RED);
+        foregroundFuncs.put("FG_GREEN", Colorizer::FG_GREEN);
+        foregroundFuncs.put("FG_YELLOW", Colorizer::FG_YELLOW);
+        foregroundFuncs.put("FG_BLUE", Colorizer::FG_BLUE);
+        foregroundFuncs.put("FG_MAGENTA", Colorizer::FG_MAGENTA);
+        foregroundFuncs.put("FG_CYAN", Colorizer::FG_CYAN);
+        foregroundFuncs.put("FG_WHITE", Colorizer::FG_WHITE);
+        foregroundFuncs.put("FG_BLACK_BRIGHT", Colorizer::FG_BLACK_BRIGHT);
+        foregroundFuncs.put("FG_RED_BRIGHT", Colorizer::FG_RED_BRIGHT);
+        foregroundFuncs.put("FG_GREEN_BRIGHT", Colorizer::FG_GREEN_BRIGHT);
+        foregroundFuncs.put("FG_YELLOW_BRIGHT", Colorizer::FG_YELLOW_BRIGHT);
+        foregroundFuncs.put("FG_BLUE_BRIGHT", Colorizer::FG_BLUE_BRIGHT);
+        foregroundFuncs.put("FG_MAGENTA_BRIGHT", Colorizer::FG_MAGENTA_BRIGHT);
+        foregroundFuncs.put("FG_CYAN_BRIGHT", Colorizer::FG_CYAN_BRIGHT);
+        foregroundFuncs.put("FG_WHITE_BRIGHT", Colorizer::FG_WHITE_BRIGHT);
+    }
+
+    private static final HashMap<String, Supplier<String>> backgroundFuncs = new HashMap<>();
+    {
+        backgroundFuncs.put("BG_BLACK", Colorizer::BG_BLACK);
+        backgroundFuncs.put("BG_RED", Colorizer::BG_RED);
+        backgroundFuncs.put("BG_GREEN", Colorizer::BG_GREEN);
+        backgroundFuncs.put("BG_YELLOW", Colorizer::BG_YELLOW);
+        backgroundFuncs.put("BG_BLUE", Colorizer::BG_BLUE);
+        backgroundFuncs.put("BG_MAGENTA", Colorizer::BG_MAGENTA);
+        backgroundFuncs.put("BG_CYAN", Colorizer::BG_CYAN);
+        backgroundFuncs.put("BG_WHITE", Colorizer::BG_WHITE);
+        backgroundFuncs.put("BG_BLACK_BRIGHT", Colorizer::BG_BLACK_BRIGHT);
+        backgroundFuncs.put("BG_RED_BRIGHT", Colorizer::BG_RED_BRIGHT);
+        backgroundFuncs.put("BG_GREEN_BRIGHT", Colorizer::BG_GREEN_BRIGHT);
+        backgroundFuncs.put("BG_YELLOW_BRIGHT", Colorizer::BG_YELLOW_BRIGHT);
+        backgroundFuncs.put("BG_BLUE_BRIGHT", Colorizer::BG_BLUE_BRIGHT);
+        backgroundFuncs.put("BG_MAGENTA_BRIGHT", Colorizer::BG_MAGENTA_BRIGHT);
+        backgroundFuncs.put("BG_CYAN_BRIGHT", Colorizer::BG_CYAN_BRIGHT);
+        backgroundFuncs.put("BG_WHITE_BRIGHT", Colorizer::BG_WHITE_BRIGHT);
     }
 
 }
