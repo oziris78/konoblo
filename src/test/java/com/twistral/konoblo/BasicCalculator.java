@@ -17,9 +17,7 @@ package com.twistral.konoblo;
 
 import java.util.Scanner;
 
-import static com.twistral.konoblo.KonobloConsole.*;
-
-public class Test {
+public class BasicCalculator {
 
     public static void add(KonobloConsole cns) {
         int x = cns.readInt("Enter number #1: ");
@@ -83,13 +81,13 @@ public class Test {
             cns.println("Thanks for using this program!");
         });
 
-        cns.define("#A", Test::mainMenu, cns.sepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
-               .define("#A1", Test::add, cns.back(1))
-               .define("#A2", Test::sub, cns.next("#A"))
-               .define("#A3", Test::mul, cns.exit())
-               .define("#A4", Test::fiboMenu, cns.sepInt(0, 1, "#A4.1", "#A4.2"))
-                   .define("#A4.1", Test::fiboLast, cns.exit())
-                   .define("#A4.2", Test::fiboAll, cns.exit());
+        cns.define("#A", BasicCalculator::mainMenu, cns.sepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
+               .define("#A1", BasicCalculator::add, cns.back(1))
+               .define("#A2", BasicCalculator::sub, cns.next("#A"))
+               .define("#A3", BasicCalculator::mul, cns.exit())
+               .define("#A4", BasicCalculator::fiboMenu, cns.sepInt(0, 1, "#A4.1", "#A4.2"))
+                   .define("#A4.1", BasicCalculator::fiboLast, cns.exit())
+                   .define("#A4.2", BasicCalculator::fiboAll, cns.exit());
 
         cns.run();
     }
