@@ -279,21 +279,23 @@ public class KonobloConsole {
 
 
     private boolean requireBoolean(boolean useDefaultValue, boolean defaultValue,
-                                   String exceptionText, boolean doTerminate)
+                                   String catchText, boolean doTerminate)
     {
         while (true) {
             try {
                 return readBoolean();
             }
             catch (Exception ignored) {
-                if (doTerminate) {
-                    this.signalTermination();
-                }
+                this.scanner.nextLine(); // CONSUME INVALID INPUT
+
                 if (useDefaultValue) {
                     return defaultValue;
                 }
-                if (exceptionText != null) {
-                    this.print(exceptionText);
+                if (catchText != null) {
+                    this.print(catchText);
+                }
+                if (doTerminate) {
+                    this.signalTermination();
                 }
             }
         }
@@ -304,23 +306,21 @@ public class KonobloConsole {
         return this.requireBoolean(true, defaultValue, null, false);
     }
 
-    public boolean requireBooleanTry(String exceptionText) {
-        return this.requireBoolean(false, false, exceptionText, false);
+    public boolean requireBooleanTry(String tryAgainText) {
+        return this.requireBoolean(false, false, tryAgainText, false);
     }
 
-    public boolean requireBooleanTerm(String exceptionText) {
-        return this.requireBoolean(false, false, exceptionText, true);
+    public boolean requireBooleanTerm(String terminatingText) {
+        return this.requireBoolean(false, false, terminatingText, true);
     }
 
 
 
     //temp
-    private int requireInt(int a, int b) {
-        return 0;
-    }
-    private String requireString(String... allowedInputs) {
-        return null;
-    }
+    public int readInt(String x) {return 0;}
+    public int requireInt(String x, int a, int b) {return 0;}
+    public int requireInt(int a, int b) { return 0; }
+    private String requireString(String... allowedInputs) { return null; }
 
 
     /*/////////////////////////////////////////////////////////////////*/

@@ -51,7 +51,7 @@ public class BasicCalculator {
     }
 
     public static void fiboLast(KonobloConsole cns) {
-        int x = cns.readInt("Enter number: ", 2, Integer.MAX_VALUE);
+        int x = cns.requireInt("Enter number: ", 2, Integer.MAX_VALUE);
         int a = 0, b = 1;
         for (int i = 2; i <= x; i++) {
             int next = a + b;
@@ -62,7 +62,7 @@ public class BasicCalculator {
     }
 
     public static void fiboAll(KonobloConsole cns) {
-        int x = cns.readInt("Enter number: ", 2, Integer.MAX_VALUE);
+        int x = cns.requireInt("Enter number: ", 2, Integer.MAX_VALUE);
         int a = 0, b = 1;
         cns.printf("Fibonacci(0) = 0\n");
         cns.printf("Fibonacci(1) = 1\n");
