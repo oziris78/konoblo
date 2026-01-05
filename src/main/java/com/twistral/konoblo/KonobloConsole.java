@@ -1,4 +1,4 @@
-// Copyright 2025 Oğuzhan Topaloğlu
+// Copyright 2025-2026 Oğuzhan Topaloğlu
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.twistral.konoblo;
 
 
 import java.io.PrintStream;
+import java.math.*;
 import java.util.*;
 import java.util.function.*;
 import com.twistral.konoblo.Director.DirectorType;
@@ -27,10 +28,15 @@ public class KonobloConsole {
     private static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
             "customize or disable this message with setGreetingText(String) method.";
 
+    private static final Runnable EMPTY_RUNNABLE = () -> {};
+
     // State Related Objects
+    private String greetingText;
     private final HashMap<String, State> states;
     private final Stack<String> stateStack;
     private String entryStateID;
+    private Runnable exitFunction; // Always run at the end of each program
+    private Runnable terminateFunction; // Only run when the program is intentionally terminated
 
     // Data (Object Instance) Storage
     private final HashMap<String, Object> storage;
@@ -39,10 +45,6 @@ public class KonobloConsole {
     private final PrintStream outStream, errStream;
     private final boolean ownsScanner, ownsStreams;
     private final Scanner scanner;
-
-    // Misc Objects
-    private String greetingText;
-    private Runnable exitFunction;
 
 
     /*//////////////////////////////////////////////////////////////////////*/
@@ -60,9 +62,10 @@ public class KonobloConsole {
         this.scanner = scanner;
 
         this.greetingText = DEF_GREETING_TEXT;
-        this.states = new HashMap<>(64);
         this.storage = new HashMap<>(64);
+        this.states = new HashMap<>(64);
         this.stateStack = new Stack<>();
+        this.terminateFunction = () -> {};
         this.exitFunction = () -> {};
         this.entryStateID = null;
     }
@@ -88,9 +91,9 @@ public class KonobloConsole {
     }
 
 
-    /*/////////////////////////////////////////////////////////////////*/
-    /*///////////////////////////  METHODS  ///////////////////////////*/
-    /*/////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  STATE METHODS  ///////////////////////////*/
+    /*///////////////////////////////////////////////////////////////////////*/
 
 
     public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Director director) {
@@ -116,34 +119,42 @@ public class KonobloConsole {
 
 
     public void run() {
-        this.println(this.greetingText);
+        if (this.greetingText != null && !this.greetingText.isEmpty()) {
+            this.println(this.greetingText);
+        }
 
-        this.stateStack.push(entryStateID);
-        while (true) {
-            // Get the current state ID
-            String currentStateID = this.stateStack.peek();
-            if (!this.states.containsKey(currentStateID)) {
-                throw new KonobloException("No state with an ID of %s was found.", currentStateID);
+        try {
+            this.stateStack.push(entryStateID);
+
+            while (true) {
+                // Get the current state ID
+                String currentStateID = this.stateStack.peek();
+                if (!this.states.containsKey(currentStateID)) {
+                    throw new KonobloException("No state with an ID of %s was found.", currentStateID);
+                }
+
+                // Get the current state using that ID and run its function
+                State curState = this.states.get(currentStateID);
+                curState.function.accept(this);
+
+                // Terminate if you come across an exit director
+                if (curState.director.type == DirectorType.EXIT) {
+                    break;
+                }
+
+                // If not terminated, queue the next state ID to be looped over
+                String nextStateID = curState.director.nextIDSupplier.get();
+                this.stateStack.push(nextStateID);
             }
-
-            // Get the current state using that ID and run its function
-            State curState = this.states.get(currentStateID);
-            curState.function.accept(this);
-
-            // Terminate if you come across an exit director
-            if (curState.director.type == DirectorType.EXIT) {
-                break;
-            }
-
-            // If not terminated, queue the next state ID to be looped over
-            String nextStateID = curState.director.nextIDSupplier.get();
-            this.stateStack.push(nextStateID);
+        }
+        catch (KonobloTerminateSignal ignored) {
+            this.terminateFunction.run(); // intentional fast-exit
         }
 
         // Run the special and final exit function
         this.exitFunction.run();
 
-        // Clean-up / close scanner and streams if needed
+        // Clean-up / close streams if needed
         if (ownsStreams) {
             boolean usesSameStream = outStream.equals(errStream);
             this.outStream.close();
@@ -152,9 +163,24 @@ public class KonobloConsole {
             }
         }
 
+        // Clean-up / close scanner if needed
         if (ownsScanner) {
             this.scanner.close();
         }
+    }
+
+
+    // This Exception subclass is intentionally used to signal termination
+    private static final class KonobloTerminateSignal extends RuntimeException {
+        KonobloTerminateSignal() {
+            // no message, no throwable chaining, no stacktrace => NO COST
+            super(null, null, false, false);
+        }
+    }
+
+
+    private void signalTermination() {
+        throw new KonobloTerminateSignal();
     }
 
 
@@ -191,7 +217,7 @@ public class KonobloConsole {
         }
 
         return new Director(DirectorType.SEP_INT, () -> {
-            int x = readInt(a, b);
+            int x = requireInt(a, b);
             return options[x-a];
         });
     }
@@ -205,7 +231,7 @@ public class KonobloConsole {
         }
 
         return new Director(DirectorType.SEP_STR, () -> {
-            final String selectedID = readString(inputs);
+            final String selectedID = requireString(inputs);
 
             int selectedIndex = 0;
             while (selectedIndex < inputs.length) {
@@ -221,62 +247,78 @@ public class KonobloConsole {
     }
 
 
-    /*///////////////////////////////////////////////////////////////////*/
-    /*/////////////////////  READING INPUT METHODS  /////////////////////*/
-    /*///////////////////////////////////////////////////////////////////*/
+    /*/////////////////////////////////////////////////////////////*/
+    /*/////////////////////  READING METHODS  /////////////////////*/
+    /*/////////////////////////////////////////////////////////////*/
+
+    // The following methods can and will throw an exception if something goes wrong
+    // For %100 safe input reading use requiring methods
+
+    public String readString() { return scanner.nextLine(); }
+    public double readDouble() { return scanner.nextDouble(); }
+    public float readFloat() { return scanner.nextFloat(); }
+    public boolean readBoolean() { return scanner.nextBoolean(); }
+    public BigDecimal readBigDecimal() { return scanner.nextBigDecimal(); }
+
+    public byte readByte() { return scanner.nextByte(); }
+    public int readInt() { return scanner.nextInt(); }
+    public BigInteger readBigInteger() { return scanner.nextBigInteger(); }
+    public long readLong() { return scanner.nextLong(); }
+    public short readShort() { return scanner.nextShort(); }
+
+    public byte readByte(int radix) { return scanner.nextByte(radix); }
+    public int readInt(int radix) { return scanner.nextInt(radix); }
+    public BigInteger readBigInteger(int radix) { return scanner.nextBigInteger(radix); }
+    public long readLong(int radix) { return scanner.nextLong(radix); }
+    public short readShort(int radix) { return scanner.nextShort(radix); }
 
 
-    /**
-     * Reads an integer in range [min, max]. This range includes both parameters.
-     * @param min accepted minimum integer input
-     * @param max accepted maximum integer input
-     * @return an integer input in range [min, max]
-     */
-    public int readInt(int min, int max) {
-        int input = 0;
-        String line = "";
+    /*///////////////////////////////////////////////////////////////*/
+    /*/////////////////////  REQUIRING METHODS  /////////////////////*/
+    /*///////////////////////////////////////////////////////////////*/
+
+
+    private boolean requireBoolean(boolean useDefaultValue, boolean defaultValue,
+                                   String exceptionText, boolean doTerminate)
+    {
         while (true) {
             try {
-                line = scanner.nextLine();
-                input = Integer.parseInt(line);
-
-                if(min <= input && input <= max) {
-                    return input;
-                }
-
-                this.errorf(
-                    "Input must be in range [%d,%d], your input was: %d, try again: ",
-                    min, max, input
-                );
+                return readBoolean();
             }
             catch (Exception ignored) {
-                this.errorf("Invalid input: '%s', try again: ", line);
+                if (doTerminate) {
+                    this.signalTermination();
+                }
+                if (useDefaultValue) {
+                    return defaultValue;
+                }
+                if (exceptionText != null) {
+                    this.print(exceptionText);
+                }
             }
         }
     }
 
 
-    /**
-     * @return reads any integer input
-     */
-    public int readInt() {
-        return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    public boolean requireBooleanDefVal(boolean defaultValue) {
+        return this.requireBoolean(true, defaultValue, null, false);
+    }
+
+    public boolean requireBooleanTry(String exceptionText) {
+        return this.requireBoolean(false, false, exceptionText, false);
+    }
+
+    public boolean requireBooleanTerm(String exceptionText) {
+        return this.requireBoolean(false, false, exceptionText, true);
     }
 
 
-    public int readInt(Object text) {
-        this.print(text);
-        return this.readInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+
+    //temp
+    private int requireInt(int a, int b) {
+        return 0;
     }
-
-
-    public int readInt(Object text, int min, int max) {
-        this.print(text);
-        return this.readInt(min, max);
-    }
-
-
-    private String readString(String... allowedInputs) {
+    private String requireString(String... allowedInputs) {
         return null;
     }
 
@@ -312,11 +354,8 @@ public class KonobloConsole {
         storage.remove(objectID);
     }
 
-
     public void clearObjects() {
-        for (String objectID : this.storage.keySet()) {
-            removeObject(objectID);
-        }
+        storage.clear();
     }
 
 
@@ -348,17 +387,22 @@ public class KonobloConsole {
     /*///////////////////////////  GETTERS & SETTERS  ///////////////////////////*/
     /*///////////////////////////////////////////////////////////////////////////*/
 
-    public void setGreetingText(String greetingText) { this.greetingText = greetingText; }
-    public String getGreetingText() { return greetingText; }
 
-    public void setEntryStateID(String entryStateID) { this.entryStateID = entryStateID; }
+    public Runnable getTerminateFunction() { return terminateFunction; }
+    public Runnable getExitFunction() { return exitFunction; }
+    public String getGreetingText() { return greetingText; }
     public String getEntryStateID() { return entryStateID; }
 
-    public void setExitFunction(Runnable exitFunction) {
-        this.exitFunction = (exitFunction != null) ? exitFunction : (() -> {});
-    }
-    public Runnable getExitFunction() { return exitFunction; }
+    public void setGreetingText(String greetingText) { this.greetingText = greetingText; }
+    public void setEntryStateID(String entryStateID) { this.entryStateID = entryStateID; }
 
+    public void setTerminateFunction(Runnable terminateFunction) {
+        this.terminateFunction = (terminateFunction != null) ? terminateFunction : EMPTY_RUNNABLE;
+    }
+
+    public void setExitFunction(Runnable exitFunction) {
+        this.exitFunction = (exitFunction != null) ? exitFunction : EMPTY_RUNNABLE;
+    }
 
 
 }
