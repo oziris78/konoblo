@@ -41,10 +41,10 @@ public class ReadVsRequireTest {
         cns.setTerminateFunction(() -> cns.println("Terminated!!"));
         cns.setExitFunction(() -> cns.println("Exited!!"));
 
-        cns.define("#0", ReadVsRequireTest::f1, cns.next("#1"));
-        cns.define("#1", ReadVsRequireTest::f2, cns.next("#2"));
-        cns.define("#2", ReadVsRequireTest::f3, cns.next("#3"));
-        cns.define("#3", ReadVsRequireTest::f4, cns.exit());
+        cns.define("#0", ReadVsRequireTest::f1, cns.dirNext("#1"));
+        cns.define("#1", ReadVsRequireTest::f2, cns.dirNext("#2"));
+        cns.define("#2", ReadVsRequireTest::f3, cns.dirNext("#3"));
+        cns.define("#3", ReadVsRequireTest::f4, cns.dirExit());
 
         cns.run();
     }

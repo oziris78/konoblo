@@ -179,25 +179,21 @@ public class KonobloConsole {
     }
 
 
-    private void signalTermination() {
-        throw new KonobloTerminateSignal();
-    }
-
 
     /*///////////////////////////////////////////////////////////////////*/
     /*///////////////////////////  DIRECTORS  ///////////////////////////*/
     /*///////////////////////////////////////////////////////////////////*/
 
 
-    public Director exit() {
+    public Director dirExit() {
         return new Director(DirectorType.EXIT, () -> "");
     }
 
-    public Director next(String nextID) {
+    public Director dirNext(String nextID) {
         return new Director(DirectorType.NEXT, () -> nextID);
     }
 
-    public Director back(int n) {
+    public Director dirBack(int n) {
         return new Director(DirectorType.BACK, () -> {
             final int m = stateStack.size();
             final int nextIndex = m - n - 1;
@@ -211,7 +207,7 @@ public class KonobloConsole {
         });
     }
 
-    public Director sepInt(int a, int b, String... options) {
+    public Director dirSepInt(int a, int b, String... options) {
         if (options.length != b - a + 1) {
             throw new KonobloException("You need to have exactly %d options.", b - a + 1);
         }
@@ -222,27 +218,27 @@ public class KonobloConsole {
         });
     }
 
-    public Director sepStr(String[] inputs, String[] options) {
-        if (inputs.length != options.length) {
+    public Director dirSepStr(String[] allowedInputs, String[] mappedIDs) {
+        if (allowedInputs.length != mappedIDs.length) {
             throw new KonobloException(
                 "Both arrays must have the same number of items: %d != %d.",
-                inputs.length, options.length
+                allowedInputs.length, mappedIDs.length
             );
         }
 
         return new Director(DirectorType.SEP_STR, () -> {
-            final String selectedID = requireString(inputs);
+            final String selectedID = requireString(allowedInputs);
 
             int selectedIndex = 0;
-            while (selectedIndex < inputs.length) {
-                if (inputs[selectedIndex].equals(selectedID)) {
+            while (selectedIndex < allowedInputs.length) {
+                if (allowedInputs[selectedIndex].equals(selectedID)) {
                     break;
                 }
 
                 selectedIndex++;
             }
 
-            return options[selectedIndex];
+            return mappedIDs[selectedIndex];
         });
     }
 
@@ -278,49 +274,191 @@ public class KonobloConsole {
     /*///////////////////////////////////////////////////////////////*/
 
 
-    private boolean requireBoolean(boolean useDefaultValue, boolean defaultValue,
-                                   String catchText, boolean doTerminate)
+    // This Exception subclass is intentionally used to reject inputs inside requireCore method
+    private static final class KonobloInputReject extends RuntimeException {
+        KonobloInputReject() {
+            // no message, no throwable chaining, no stacktrace => NO COST
+            super(null, null, false, false);
+        }
+    }
+
+
+    // All requireXXX() functions point to this at the end
+    private <T> T requireCore(Supplier<T> supplier,
+                              Predicate<T> restrictor, String restrictFailText,
+                              boolean useDefaultValue, T defaultValue,
+                              String catchText, boolean doTerminate)
     {
         while (true) {
             try {
-                return readBoolean();
+                T input = supplier.get();
+
+                if (restrictor != null) { // restriction will happen
+                    if (!restrictor.test(input)) {
+                        // restriction FAILED: bad input
+                        this.printlnIfValid(restrictFailText);
+                        throw new KonobloInputReject();
+                    }
+                }
+
+                return input;
             }
-            catch (Exception ignored) {
-                this.scanner.nextLine(); // CONSUME INVALID INPUT
+            // Catch #1 InputMismatchException: Real bad input was given (recoverable)
+            //          KonobloInputReject: Good input was given but rejected via restrictions
+            catch (InputMismatchException | KonobloInputReject e) {
+                if (scanner.hasNextLine()) {
+                    this.scanner.nextLine(); // CONSUME INVALID INPUT
+                }
 
                 if (useDefaultValue) {
                     return defaultValue;
                 }
-                if (catchText != null) {
-                    this.print(catchText);
-                }
+
+                this.printlnIfValid(catchText);
+
                 if (doTerminate) {
-                    this.signalTermination();
+                    throw new KonobloTerminateSignal();
                 }
+            }
+            // Catch #2 NoSuchElementException: Input is exhausted (cannot recover, can terminate)
+            catch (NoSuchElementException e) {
+                throw new KonobloTerminateSignal();
+            }
+            // Catch #3 IllegalStateException: Scanner is broken/closed (cannot recover or terminate)
+            catch (IllegalStateException e) {
+                throw e;
             }
         }
     }
 
 
+    /*//////////////////////////////////////////////////*/
+
+
+    private boolean requireBoolean(boolean useDefaultValue, boolean defaultValue,
+                                   String catchText, boolean doTerminate)
+    {
+        // "Restricting" bools dont make any sense, its either true or false
+        return this.requireCore(
+            () -> this.readBoolean(), null, null,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+
+    private int requireInt(int radix, Predicate<Integer> restrictor, String restrictFailText,
+                           boolean useDefaultValue, int defaultValue,
+                           String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readInt(radix), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private long requireLong(int radix, Predicate<Long> restrictor, String restrictFailText,
+                           boolean useDefaultValue, long defaultValue,
+                           String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readLong(radix), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private byte requireByte(int radix, Predicate<Byte> restrictor, String restrictFailText,
+                             boolean useDefaultValue, byte defaultValue,
+                             String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readByte(radix), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private short requireShort(int radix, Predicate<Short> restrictor, String restrictFailText,
+                             boolean useDefaultValue, short defaultValue,
+                             String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readShort(radix), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private String requireString(Predicate<String> restrictor, String restrictFailText,
+                             boolean useDefaultValue, String defaultValue,
+                             String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readString(), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private BigDecimal requireBigDecimal(Predicate<BigDecimal> restrictor, String restrictFailText,
+                                         boolean useDefaultValue, BigDecimal defaultValue,
+                                         String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readBigDecimal(), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private BigInteger requireBigInteger(int radix, Predicate<BigInteger> restrictor,
+                                         String restrictFailText, boolean useDefaultValue,
+                                         BigInteger defaultValue, String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readBigInteger(radix), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+
+    private double requireDouble(Predicate<Double> restrictor, String restrictFailText,
+                                 boolean useDefaultValue, double defaultValue,
+                                 String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readDouble(), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+    private float requireFloat(Predicate<Float> restrictor, String restrictFailText,
+                               boolean useDefaultValue, float defaultValue,
+                               String catchText, boolean doTerminate)
+    {
+        return this.requireCore(
+            () -> this.readFloat(), restrictor, restrictFailText,
+            useDefaultValue, defaultValue, catchText, doTerminate
+        );
+    }
+
+
+    /*//////////////////////////////////////////////////*/
+
+    // temp stuff
+
     public boolean requireBooleanDefVal(boolean defaultValue) {
         return this.requireBoolean(true, defaultValue, null, false);
     }
 
-    public boolean requireBooleanTry(String tryAgainText) {
-        return this.requireBoolean(false, false, tryAgainText, false);
+    public boolean requireBooleanRetry(String retryText) {
+        return this.requireBoolean(false, false, retryText, false);
     }
 
-    public boolean requireBooleanTerm(String terminatingText) {
-        return this.requireBoolean(false, false, terminatingText, true);
+    public boolean requireBooleanTerm(String terminationText) {
+        return this.requireBoolean(false, false, terminationText, true);
     }
 
-
-
-    //temp
     public int readInt(String x) {return 0;}
     public int requireInt(String x, int a, int b) {return 0;}
     public int requireInt(int a, int b) { return 0; }
     private String requireString(String... allowedInputs) { return null; }
+
 
 
     /*/////////////////////////////////////////////////////////////////*/
@@ -402,6 +540,18 @@ public class KonobloConsole {
 
     public void setExitFunction(Runnable exitFunction) {
         this.exitFunction = (exitFunction != null) ? exitFunction : EMPTY_RUNNABLE;
+    }
+
+
+    /*//////////////////////////////////////////////////////////////////////////*/
+    /*///////////////////////////  HELPER FUNCTIONS  ///////////////////////////*/
+    /*//////////////////////////////////////////////////////////////////////////*/
+
+
+    private void printlnIfValid(String text) {
+        if (text == null) return;
+        if (text.isEmpty()) return;
+        this.println(text);
     }
 
 

@@ -81,13 +81,13 @@ public class BasicCalculator {
             cns.println("Thanks for using this program!");
         });
 
-        cns.define("#A", BasicCalculator::mainMenu, cns.sepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
-               .define("#A1", BasicCalculator::add, cns.back(1))
-               .define("#A2", BasicCalculator::sub, cns.next("#A"))
-               .define("#A3", BasicCalculator::mul, cns.exit())
-               .define("#A4", BasicCalculator::fiboMenu, cns.sepInt(0, 1, "#A4.1", "#A4.2"))
-                   .define("#A4.1", BasicCalculator::fiboLast, cns.exit())
-                   .define("#A4.2", BasicCalculator::fiboAll, cns.exit());
+        cns.define("#A", BasicCalculator::mainMenu, cns.dirSepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
+               .define("#A1", BasicCalculator::add, cns.dirBack(1))
+               .define("#A2", BasicCalculator::sub, cns.dirNext("#A"))
+               .define("#A3", BasicCalculator::mul, cns.dirExit())
+               .define("#A4", BasicCalculator::fiboMenu, cns.dirSepInt(0, 1, "#A4.1", "#A4.2"))
+                   .define("#A4.1", BasicCalculator::fiboLast, cns.dirExit())
+                   .define("#A4.2", BasicCalculator::fiboAll, cns.dirExit());
 
         cns.run();
     }
