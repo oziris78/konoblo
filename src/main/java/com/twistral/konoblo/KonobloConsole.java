@@ -96,6 +96,19 @@ public class KonobloConsole {
     /*///////////////////////////////////////////////////////////////////////*/
 
 
+    private static final class State {
+        public final Consumer<KonobloConsole> function;
+        public final Director director;
+        public final String ID;
+
+        State(String ID, Consumer<KonobloConsole> function, Director director) {
+            this.function = function;
+            this.director = director;
+            this.ID = ID;
+        }
+    }
+
+
     public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Director director) {
         if (ID == null)
             throw new KonobloException("State ID can't be null.");
@@ -346,113 +359,295 @@ public class KonobloConsole {
     }
 
 
-    private int requireInt(int radix, Predicate<Integer> restrictor, String restrictFailText,
+    private int requireInt(int radix, Predicate<Integer> restrictor, String restrictedText,
                            boolean useDefaultValue, int defaultValue,
                            String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readInt(radix), restrictor, restrictFailText,
+            () -> this.readInt(radix), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private long requireLong(int radix, Predicate<Long> restrictor, String restrictFailText,
+    private long requireLong(int radix, Predicate<Long> restrictor, String restrictedText,
                            boolean useDefaultValue, long defaultValue,
                            String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readLong(radix), restrictor, restrictFailText,
+            () -> this.readLong(radix), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private byte requireByte(int radix, Predicate<Byte> restrictor, String restrictFailText,
+    private byte requireByte(int radix, Predicate<Byte> restrictor, String restrictedText,
                              boolean useDefaultValue, byte defaultValue,
                              String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readByte(radix), restrictor, restrictFailText,
+            () -> this.readByte(radix), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private short requireShort(int radix, Predicate<Short> restrictor, String restrictFailText,
+    private short requireShort(int radix, Predicate<Short> restrictor, String restrictedText,
                              boolean useDefaultValue, short defaultValue,
                              String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readShort(radix), restrictor, restrictFailText,
+            () -> this.readShort(radix), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private String requireString(Predicate<String> restrictor, String restrictFailText,
+    private String requireString(Predicate<String> restrictor, String restrictedText,
                              boolean useDefaultValue, String defaultValue,
                              String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readString(), restrictor, restrictFailText,
+            () -> this.readString(), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private BigDecimal requireBigDecimal(Predicate<BigDecimal> restrictor, String restrictFailText,
+    private BigDecimal requireBigDecimal(Predicate<BigDecimal> restrictor, String restrictedText,
                                          boolean useDefaultValue, BigDecimal defaultValue,
                                          String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readBigDecimal(), restrictor, restrictFailText,
+            () -> this.readBigDecimal(), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
     private BigInteger requireBigInteger(int radix, Predicate<BigInteger> restrictor,
-                                         String restrictFailText, boolean useDefaultValue,
+                                         String restrictedText, boolean useDefaultValue,
                                          BigInteger defaultValue, String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readBigInteger(radix), restrictor, restrictFailText,
+            () -> this.readBigInteger(radix), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
 
-    private double requireDouble(Predicate<Double> restrictor, String restrictFailText,
+    private double requireDouble(Predicate<Double> restrictor, String restrictedText,
                                  boolean useDefaultValue, double defaultValue,
                                  String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readDouble(), restrictor, restrictFailText,
+            () -> this.readDouble(), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-    private float requireFloat(Predicate<Float> restrictor, String restrictFailText,
+    private float requireFloat(Predicate<Float> restrictor, String restrictedText,
                                boolean useDefaultValue, float defaultValue,
                                String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readFloat(), restrictor, restrictFailText,
+            () -> this.readFloat(), restrictor, restrictedText,
             useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
+
+
+    /*///////////////// INFINITE RETRY FUNCTIONS /////////////////*/
+
+
+    public boolean requireBoolean(String retryText) {
+        return this.requireBoolean(false, false, retryText, false);
+    }
+
+    public int requireInt(int radix, Predicate<Integer> restrictor, String restrictFailText,
+                          String retryText)
+    {
+        return this.requireInt(radix, restrictor, restrictFailText, false, 0, retryText, false);
+    }
+
+    public long requireLong(int radix, Predicate<Long> restrictor, String restrictFailText,
+                            String retryText)
+    {
+        return this.requireLong(radix, restrictor, restrictFailText, false, 0L, retryText, false);
+    }
+
+    public byte requireByte(int radix, Predicate<Byte> restrictor, String restrictFailText,
+                            String retryText)
+    {
+        return this.requireByte(radix, restrictor, restrictFailText, false, (byte)0, retryText, false);
+    }
+
+    public short requireShort(int radix, Predicate<Short> restrictor, String restrictFailText,
+                              String retryText)
+    {
+        return this.requireShort(radix, restrictor, restrictFailText, false,
+                (short)0, retryText, false);
+    }
+
+    public String requireString(Predicate<String> restrictor, String restrictFailText, String retryText) {
+        return this.requireString(restrictor, restrictFailText, false, null, retryText, false);
+    }
+
+    public BigDecimal requireBigDecimal(Predicate<BigDecimal> restrictor, String restrictFailText,
+                                        String retryText)
+    {
+        return this.requireBigDecimal(restrictor, restrictFailText, false, null, retryText, false);
+    }
+
+    public BigInteger requireBigInteger(int radix, Predicate<BigInteger> restrictor,
+                                        String restrictFailText, String retryText)
+    {
+        return this.requireBigInteger(radix, restrictor, restrictFailText,
+                false, null, retryText, false);
+    }
+
+    public double requireDouble(Predicate<Double> restrictor, String restrictFailText, String retryText)
+    {
+        return this.requireDouble(restrictor, restrictFailText,
+                false, 0d, retryText, false);
+    }
+
+    public float requireFloat(Predicate<Float> restrictor, String restrictFailText, String retryText)
+    {
+        return this.requireFloat(restrictor, restrictFailText,
+                false, 0f, retryText, false);
+    }
+
+
+    /*///////////////// DEFAULT VALUE FUNCTIONS /////////////////*/
+
+
+    public boolean requireBooleanDef(boolean defValue) {
+        return this.requireBoolean(true, defValue, null, false);
+    }
+
+    public int requireIntDef(int radix, Predicate<Integer> restrictor, String restrictFailText,
+                             int defValue)
+    {
+        return this.requireInt(radix, restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public long requireLongDef(int radix, Predicate<Long> restrictor, String restrictFailText,
+                               long defValue)
+    {
+        return this.requireLong(radix, restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public byte requireByteDef(int radix, Predicate<Byte> restrictor, String restrictFailText,
+                               byte defValue)
+    {
+        return this.requireByte(radix, restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public short requireShortDef(int radix, Predicate<Short> restrictor, String restrictFailText,
+                                 short defValue)
+    {
+        return this.requireShort(radix, restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public String requireStringDef(Predicate<String> restrictor, String restrictFailText,
+                                   String defValue)
+    {
+        return this.requireString(restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public BigDecimal requireBigDecimalDef(Predicate<BigDecimal> restrictor, String restrictFailText,
+                                           BigDecimal defValue)
+    {
+        return this.requireBigDecimal(restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public BigInteger requireBigIntegerDef(int radix, Predicate<BigInteger> restrictor,
+                                           String restrictFailText, BigInteger defValue)
+    {
+        return this.requireBigInteger(radix, restrictor, restrictFailText,
+                true, defValue, null, false);
+    }
+
+    public double requireDoubleDef(Predicate<Double> restrictor, String restrictFailText,
+                                   double defValue)
+    {
+        return this.requireDouble(restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+    public float requireFloatDef(Predicate<Float> restrictor, String restrictFailText,
+                                 float defValue)
+    {
+        return this.requireFloat(restrictor, restrictFailText, true, defValue, null, false);
+    }
+
+
+    /*///////////////// TERMINATE ON BAD INPUT FUNCTIONS /////////////////*/
+
+
+    public boolean requireBooleanTerm(String terminationText) {
+        return this.requireBoolean(false, false, terminationText, true);
+    }
+
+    public int requireIntTerm(int radix, Predicate<Integer> restrictor, String restrictFailText,
+                              String terminationText)
+    {
+        return this.requireInt(radix, restrictor, restrictFailText, false, 0, terminationText, true);
+    }
+
+    public long requireLongTerm(int radix, Predicate<Long> restrictor, String restrictFailText,
+                                String terminationText)
+    {
+        return this.requireLong(radix, restrictor, restrictFailText, false, 0L, terminationText, true);
+    }
+
+    public byte requireByteTerm(int radix, Predicate<Byte> restrictor, String restrictFailText,
+                                String terminationText)
+    {
+        return this.requireByte(radix, restrictor, restrictFailText, false,
+                (byte)0, terminationText, true);
+    }
+
+    public short requireShortTerm(int radix, Predicate<Short> restrictor, String restrictFailText,
+                                  String terminationText)
+    {
+        return this.requireShort(radix, restrictor, restrictFailText, false,
+                (short)0, terminationText, true);
+    }
+
+    public String requireStringTerm(Predicate<String> restrictor, String restrictFailText,
+                                    String terminationText)
+    {
+        return this.requireString(restrictor, restrictFailText, false, null, terminationText, true);
+    }
+
+    public BigDecimal requireBigDecimalTerm(Predicate<BigDecimal> restrictor, String restrictFailText,
+                                            String terminationText)
+    {
+        return this.requireBigDecimal(restrictor, restrictFailText, false, null, terminationText, true);
+    }
+
+    public BigInteger requireBigIntegerTerm(int radix, Predicate<BigInteger> restrictor,
+                                            String restrictFailText, String terminationText)
+    {
+        return this.requireBigInteger(radix, restrictor, restrictFailText,
+                false, null, terminationText, true);
+    }
+
+    public double requireDoubleTerm(Predicate<Double> restrictor, String restrictFailText,
+                                    String terminationText)
+    {
+        return this.requireDouble(restrictor, restrictFailText, false, 0d, terminationText, true);
+    }
+
+    public float requireFloatTerm(Predicate<Float> restrictor, String restrictFailText,
+                                  String terminationText)
+    {
+        return this.requireFloat(restrictor, restrictFailText, false, 0f, terminationText, true);
+    }
+
 
 
     /*//////////////////////////////////////////////////*/
 
     // temp stuff
 
-    public boolean requireBooleanDefVal(boolean defaultValue) {
-        return this.requireBoolean(true, defaultValue, null, false);
-    }
 
-    public boolean requireBooleanRetry(String retryText) {
-        return this.requireBoolean(false, false, retryText, false);
-    }
 
-    public boolean requireBooleanTerm(String terminationText) {
-        return this.requireBoolean(false, false, terminationText, true);
-    }
 
     public int readInt(String x) {return 0;}
     public int requireInt(String x, int a, int b) {return 0;}

@@ -24,7 +24,7 @@ public class ReadVsRequireTest {
     }
     static void f2(KonobloConsole cns) {
         cns.println("testReqBooleanDefVal");
-        cns.println(cns.requireBooleanDefVal(false));
+        cns.println(cns.requireBooleanDef(false));
     }
     static void f3(KonobloConsole cns) {
         cns.println("testReqBooleanTerm");
@@ -32,7 +32,7 @@ public class ReadVsRequireTest {
     }
     static void f4(KonobloConsole cns) {
         cns.println("testReqBooleanTry");
-        cns.println(cns.requireBooleanTry("Invalid input so try again bro"));
+        cns.println(cns.requireBoolean("Invalid input so try again bro"));
     }
 
 
