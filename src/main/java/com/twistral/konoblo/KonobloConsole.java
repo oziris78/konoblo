@@ -256,6 +256,67 @@ public class KonobloConsole {
     }
 
 
+    /*/////////////////////////////////////////////////////////////////*/
+    /*///////////////////////  STORAGE METHODS  ///////////////////////*/
+    /*/////////////////////////////////////////////////////////////////*/
+
+
+    public void storeObject(String objectID, Object object) {
+        this.storage.put(objectID, object);
+    }
+
+
+    public <T> T getObject(String objectID, Class<T> objectClass) {
+        if (!this.storage.containsKey(objectID)) {
+            throw new KonobloException("ID=%s was not found in the storage.", objectID);
+        }
+
+        final Object object = this.storage.get(objectID);
+
+        if (!objectClass.isInstance(object)) {
+            throw new KonobloException(
+                "ID=%s holds %s, cannot cast into %s.", objectID,
+                object.getClass().getName(), objectClass.getName()
+            );
+        }
+
+        return objectClass.cast(object);
+    }
+
+
+    public void removeObject(String objectID) {
+        storage.remove(objectID);
+    }
+
+    public void clearObjects() {
+        storage.clear();
+    }
+
+
+    /*//////////////////////////////////////////////////////////////////////*/
+    /*/////////////////////  PRINTING & ERROR METHODS  /////////////////////*/
+    /*//////////////////////////////////////////////////////////////////////*/
+
+    // IMPORTANT NOTE: instead of overriding every print(...) and println(...) function inside
+    // PrintStream class I only added foo(Object) and foo() methods for simplicity. This wont cause
+    // any performance problems since PrintStream's API was written in 1995 and Java has autoboxing
+    // since that time. These methods point to the same functions in one way or another anyways.
+
+    /* PRINTING METHODS: BINDINGS FOR OUTSTREAM */
+    public void printf(Locale l, String format, Object... args) { outStream.printf(l, format, args); }
+    public void printf(String format, Object... args) { outStream.printf(format, args); }
+    public void println(Object x) { outStream.println(x); }
+    public void println() { outStream.println(); }
+    public void print(Object x) { outStream.print(x); }
+
+    /* ERROR METHODS: BINDINGS FOR ERRSTREAM */
+    public void errorf(Locale l, String format, Object... args) { errStream.printf(l, format, args); }
+    public void errorf(String format, Object... args) { errStream.printf(format, args); }
+    public void errorln(Object x) { errStream.println(x); }
+    public void errorln() { errStream.println(); }
+    public void error(Object x) { errStream.print(x); }
+
+
     /*/////////////////////////////////////////////////////////////*/
     /*/////////////////////  READING METHODS  /////////////////////*/
     /*/////////////////////////////////////////////////////////////*/
@@ -345,16 +406,13 @@ public class KonobloConsole {
     }
 
 
-    /*//////////////////////////////////////////////////*/
-
-
     private boolean requireBoolean(boolean useDefaultValue, boolean defaultValue,
                                    String catchText, boolean doTerminate)
     {
         // "Restricting" bools dont make any sense, its either true or false
         return this.requireCore(
-            () -> this.readBoolean(), null, null,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readBoolean(), null, null,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -364,18 +422,18 @@ public class KonobloConsole {
                            String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readInt(radix), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readInt(radix), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
     private long requireLong(int radix, Predicate<Long> restrictor, String restrictedText,
-                           boolean useDefaultValue, long defaultValue,
-                           String catchText, boolean doTerminate)
+                             boolean useDefaultValue, long defaultValue,
+                             String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readLong(radix), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readLong(radix), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -384,28 +442,28 @@ public class KonobloConsole {
                              String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readByte(radix), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readByte(radix), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
     private short requireShort(int radix, Predicate<Short> restrictor, String restrictedText,
-                             boolean useDefaultValue, short defaultValue,
-                             String catchText, boolean doTerminate)
+                               boolean useDefaultValue, short defaultValue,
+                               String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readShort(radix), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readShort(radix), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
     private String requireString(Predicate<String> restrictor, String restrictedText,
-                             boolean useDefaultValue, String defaultValue,
-                             String catchText, boolean doTerminate)
+                                 boolean useDefaultValue, String defaultValue,
+                                 String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readString(), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readString(), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -414,8 +472,8 @@ public class KonobloConsole {
                                          String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readBigDecimal(), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readBigDecimal(), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -424,8 +482,8 @@ public class KonobloConsole {
                                          BigInteger defaultValue, String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readBigInteger(radix), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readBigInteger(radix), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -435,8 +493,8 @@ public class KonobloConsole {
                                  String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readDouble(), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readDouble(), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
@@ -445,14 +503,12 @@ public class KonobloConsole {
                                String catchText, boolean doTerminate)
     {
         return this.requireCore(
-            () -> this.readFloat(), restrictor, restrictedText,
-            useDefaultValue, defaultValue, catchText, doTerminate
+                () -> this.readFloat(), restrictor, restrictedText,
+                useDefaultValue, defaultValue, catchText, doTerminate
         );
     }
 
-
     /*///////////////// INFINITE RETRY FUNCTIONS /////////////////*/
-
 
     public boolean requireBoolean(String retryText) {
         return this.requireBoolean(false, false, retryText, false);
@@ -512,9 +568,7 @@ public class KonobloConsole {
                 false, 0f, retryText, false);
     }
 
-
     /*///////////////// DEFAULT VALUE FUNCTIONS /////////////////*/
-
 
     public boolean requireBooleanDef(boolean defValue) {
         return this.requireBoolean(true, defValue, null, false);
@@ -640,6 +694,257 @@ public class KonobloConsole {
         return this.requireFloat(restrictor, restrictFailText, false, 0f, terminationText, true);
     }
 
+    /*///////////////// RETRY CONVENIENCE OVERLOADS /////////////////*/
+
+    public int requireInt(int radix, String restrictFailText, String retryText) {
+        return this.requireInt(radix, null, restrictFailText, retryText);
+    }
+
+    public int requireInt(Predicate<Integer> restrictor, String restrictFailText, String retryText) {
+        return this.requireInt(10, restrictor, restrictFailText, retryText);
+    }
+
+    public int requireInt(String restrictFailText, String retryText) {
+        return this.requireInt(10, null, restrictFailText, retryText);
+    }
+
+    public long requireLong(Predicate<Long> restrictor, String restrictFailText, String retryText) {
+        return this.requireLong(10, restrictor, restrictFailText, retryText);
+    }
+
+    public long requireLong(int radix, String restrictFailText, String retryText) {
+        return this.requireLong(radix, null, restrictFailText, retryText);
+    }
+
+    public long requireLong(String restrictFailText, String retryText) {
+        return this.requireLong(10, null, restrictFailText, retryText);
+    }
+
+    public byte requireByte(Predicate<Byte> restrictor, String restrictFailText, String retryText) {
+        return this.requireByte(10, restrictor, restrictFailText, retryText);
+    }
+
+    public byte requireByte(int radix, String restrictFailText, String retryText) {
+        return this.requireByte(radix, null, restrictFailText, retryText);
+    }
+
+    public byte requireByte(String restrictFailText, String retryText) {
+        return this.requireByte(10, null, restrictFailText, retryText);
+    }
+
+    public short requireShort(Predicate<Short> restrictor, String restrictFailText, String retryText) {
+        return this.requireShort(10, restrictor, restrictFailText, retryText);
+    }
+
+    public short requireShort(int radix, String restrictFailText, String retryText) {
+        return this.requireShort(radix, null, restrictFailText, retryText);
+    }
+
+    public short requireShort(String restrictFailText, String retryText) {
+        return this.requireShort(10, null, restrictFailText, retryText);
+    }
+
+    public BigInteger requireBigInteger(Predicate<BigInteger> restrictor,
+                                        String restrictFailText, String retryText)
+    {
+        return this.requireBigInteger(10, restrictor, restrictFailText, retryText);
+    }
+
+    public BigInteger requireBigInteger(int radix, String restrictFailText, String retryText) {
+        return this.requireBigInteger(radix, null, restrictFailText, retryText);
+    }
+
+    public BigInteger requireBigInteger(String restrictFailText, String retryText) {
+        return this.requireBigInteger(10, null, restrictFailText, retryText);
+    }
+
+    public String requireString(String restrictFailText, String retryText) {
+        return this.requireString(null, restrictFailText, retryText);
+    }
+
+    public BigDecimal requireBigDecimal(String restrictFailText, String retryText) {
+        return this.requireBigDecimal(null, restrictFailText, retryText);
+    }
+
+    public double requireDouble(String restrictFailText, String retryText) {
+        return this.requireDouble(null, restrictFailText, retryText);
+    }
+
+    public float requireFloat(String restrictFailText, String retryText) {
+        return this.requireFloat(null, restrictFailText, retryText);
+    }
+
+    /*///////////////// DEFVALUE CONVENIENCE OVERLOADS /////////////////*/
+
+    public int requireIntDef(Predicate<Integer> restrictor, String restrictFailText, int defValue) {
+        return this.requireIntDef(10, restrictor, restrictFailText, defValue);
+    }
+
+    public int requireIntDef(int radix, String restrictFailText, int defValue) {
+        return this.requireIntDef(radix, null, restrictFailText, defValue);
+    }
+
+    public int requireIntDef(String restrictFailText, int defValue) {
+        return this.requireIntDef(10, null, restrictFailText, defValue);
+    }
+
+    public long requireLongDef(Predicate<Long> restrictor, String restrictFailText, long defValue) {
+        return this.requireLongDef(10, restrictor, restrictFailText, defValue);
+    }
+
+    public long requireLongDef(int radix, String restrictFailText, long defValue) {
+        return this.requireLongDef(radix, null, restrictFailText, defValue);
+    }
+
+    public long requireLongDef(String restrictFailText, long defValue) {
+        return this.requireLongDef(10, null, restrictFailText, defValue);
+    }
+
+    public byte requireByteDef(Predicate<Byte> restrictor, String restrictFailText, byte defValue) {
+        return this.requireByteDef(10, restrictor, restrictFailText, defValue);
+    }
+
+    public byte requireByteDef(int radix, String restrictFailText, byte defValue) {
+        return this.requireByteDef(radix, null, restrictFailText, defValue);
+    }
+
+    public byte requireByteDef(String restrictFailText, byte defValue) {
+        return this.requireByteDef(10, null, restrictFailText, defValue);
+    }
+
+    public short requireShortDef(Predicate<Short> restrictor, String restrictFailText, short defValue) {
+        return this.requireShortDef(10, restrictor, restrictFailText, defValue);
+    }
+
+    public short requireShortDef(int radix, String restrictFailText, short defValue) {
+        return this.requireShortDef(radix, null, restrictFailText, defValue);
+    }
+
+    public short requireShortDef(String restrictFailText, short defValue) {
+        return this.requireShortDef(10, null, restrictFailText, defValue);
+    }
+
+    public BigInteger requireBigIntegerDef(Predicate<BigInteger> restrictor,
+                                           String restrictFailText, BigInteger defValue)
+    {
+        return this.requireBigIntegerDef(10, restrictor, restrictFailText, defValue);
+    }
+
+    public BigInteger requireBigIntegerDef(int radix, String restrictFailText, BigInteger defValue) {
+        return this.requireBigIntegerDef(radix, null, restrictFailText, defValue);
+    }
+
+    public BigInteger requireBigIntegerDef(String restrictFailText, BigInteger defValue) {
+        return this.requireBigIntegerDef(10, null, restrictFailText, defValue);
+    }
+
+    public String requireStringDef(String restrictFailText, String defValue) {
+        return this.requireStringDef(null, restrictFailText, defValue);
+    }
+
+    public BigDecimal requireBigDecimalDef(String restrictFailText, BigDecimal defValue) {
+        return this.requireBigDecimalDef(null, restrictFailText, defValue);
+    }
+
+    public double requireDoubleDef(String restrictFailText, double defValue) {
+        return this.requireDoubleDef(null, restrictFailText, defValue);
+    }
+
+    public float requireFloatDef(String restrictFailText, float defValue) {
+        return this.requireFloatDef(null, restrictFailText, defValue);
+    }
+
+
+    /*///////////////// TERMINATION CONVENIENCE OVERLOADS /////////////////*/
+
+
+    public int requireIntTerm(Predicate<Integer> restrictor,
+                              String restrictFailText, String terminationText)
+    {
+        return this.requireIntTerm(10, restrictor, restrictFailText, terminationText);
+    }
+
+    public int requireIntTerm(int radix, String restrictFailText, String terminationText) {
+        return this.requireIntTerm(radix, null, restrictFailText, terminationText);
+    }
+
+    public int requireIntTerm(String restrictFailText, String terminationText) {
+        return this.requireIntTerm(10, null, restrictFailText, terminationText);
+    }
+
+    public long requireLongTerm(Predicate<Long> restrictor,
+                                String restrictFailText, String terminationText)
+    {
+        return this.requireLongTerm(10, restrictor, restrictFailText, terminationText);
+    }
+
+    public long requireLongTerm(int radix, String restrictFailText, String terminationText) {
+        return this.requireLongTerm(radix, null, restrictFailText, terminationText);
+    }
+
+    public long requireLongTerm(String restrictFailText, String terminationText) {
+        return this.requireLongTerm(10, null, restrictFailText, terminationText);
+    }
+
+    public byte requireByteTerm(Predicate<Byte> restrictor,
+                                String restrictFailText, String terminationText)
+    {
+        return this.requireByteTerm(10, restrictor, restrictFailText, terminationText);
+    }
+
+    public byte requireByteTerm(int radix, String restrictFailText, String terminationText) {
+        return this.requireByteTerm(radix, null, restrictFailText, terminationText);
+    }
+
+    public byte requireByteTerm(String restrictFailText, String terminationText) {
+        return this.requireByteTerm(10, null, restrictFailText, terminationText);
+    }
+
+    public short requireShortTerm(Predicate<Short> restrictor,
+                                  String restrictFailText, String terminationText)
+    {
+        return this.requireShortTerm(10, restrictor, restrictFailText, terminationText);
+    }
+
+    public short requireShortTerm(int radix, String restrictFailText, String terminationText) {
+        return this.requireShortTerm(radix, null, restrictFailText, terminationText);
+    }
+
+    public short requireShortTerm(String restrictFailText, String terminationText) {
+        return this.requireShortTerm(10, null, restrictFailText, terminationText);
+    }
+
+    public BigInteger requireBigIntegerTerm(Predicate<BigInteger> restrictor,
+                                            String restrictFailText, String terminationText)
+    {
+        return this.requireBigIntegerTerm(10, restrictor, restrictFailText, terminationText);
+    }
+
+    public BigInteger requireBigIntegerTerm(int radix, String restrictFailText,
+                                            String terminationText)
+    {
+        return this.requireBigIntegerTerm(radix, null, restrictFailText, terminationText);
+    }
+
+    public BigInteger requireBigIntegerTerm(String restrictFailText, String terminationText) {
+        return this.requireBigIntegerTerm(10, null, restrictFailText, terminationText);
+    }
+
+    public String requireStringTerm(String restrictFailText, String terminationText) {
+        return this.requireStringTerm(null, restrictFailText, terminationText);
+    }
+
+    public BigDecimal requireBigDecimalTerm(String restrictFailText, String terminationText) {
+        return this.requireBigDecimalTerm(null, restrictFailText, terminationText);
+    }
+
+    public double requireDoubleTerm(String restrictFailText, String terminationText) {
+        return this.requireDoubleTerm(null, restrictFailText, terminationText);
+    }
+
+    public float requireFloatTerm(String restrictFailText, String terminationText) {
+        return this.requireFloatTerm(null, restrictFailText, terminationText);
+    }
 
 
     /*//////////////////////////////////////////////////*/
@@ -647,73 +952,10 @@ public class KonobloConsole {
     // temp stuff
 
 
-
-
     public int readInt(String x) {return 0;}
     public int requireInt(String x, int a, int b) {return 0;}
     public int requireInt(int a, int b) { return 0; }
     private String requireString(String... allowedInputs) { return null; }
-
-
-
-    /*/////////////////////////////////////////////////////////////////*/
-    /*///////////////////////  STORAGE METHODS  ///////////////////////*/
-    /*/////////////////////////////////////////////////////////////////*/
-
-    public void storeObject(String objectID, Object object) {
-        this.storage.put(objectID, object);
-    }
-
-
-    public <T> T getObject(String objectID, Class<T> objectClass) {
-        if (!this.storage.containsKey(objectID)) {
-            throw new KonobloException("ID=%s was not found in the storage.", objectID);
-        }
-
-        final Object object = this.storage.get(objectID);
-
-        if (!objectClass.isInstance(object)) {
-            throw new KonobloException(
-                "ID=%s holds %s, cannot cast into %s.", objectID,
-                object.getClass().getName(), objectClass.getName()
-            );
-        }
-
-        return objectClass.cast(object);
-    }
-
-
-    public void removeObject(String objectID) {
-        storage.remove(objectID);
-    }
-
-    public void clearObjects() {
-        storage.clear();
-    }
-
-
-    /*//////////////////////////////////////////////////////////////////////*/
-    /*/////////////////////  PRINTING & ERROR METHODS  /////////////////////*/
-    /*//////////////////////////////////////////////////////////////////////*/
-
-    // IMPORTANT NOTE: instead of overriding every print(...) and println(...) function inside
-    // PrintStream class I only added foo(Object) and foo() methods for simplicity. This wont cause
-    // any performance problems since PrintStream's API was written in 1995 and Java has autoboxing
-    // since that time. These methods point to the same functions in one way or another anyways.
-
-    /* PRINTING METHODS: BINDINGS FOR OUTSTREAM */
-    public void printf(Locale l, String format, Object... args) { outStream.printf(l, format, args); }
-    public void printf(String format, Object... args) { outStream.printf(format, args); }
-    public void println(Object x) { outStream.println(x); }
-    public void println() { outStream.println(); }
-    public void print(Object x) { outStream.print(x); }
-
-    /* ERROR METHODS: BINDINGS FOR ERRSTREAM */
-    public void errorf(Locale l, String format, Object... args) { errStream.printf(l, format, args); }
-    public void errorf(String format, Object... args) { errStream.printf(format, args); }
-    public void errorln(Object x) { errStream.println(x); }
-    public void errorln() { errStream.println(); }
-    public void error(Object x) { errStream.print(x); }
 
 
     /*///////////////////////////////////////////////////////////////////////////*/
@@ -742,7 +984,6 @@ public class KonobloConsole {
     /*///////////////////////////  HELPER FUNCTIONS  ///////////////////////////*/
     /*//////////////////////////////////////////////////////////////////////////*/
 
-
     private void printlnIfValid(String text) {
         if (text == null) return;
         if (text.isEmpty()) return;
@@ -751,11 +992,4 @@ public class KonobloConsole {
 
 
 }
-
-
-
-
-
-
-
 
