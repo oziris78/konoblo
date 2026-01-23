@@ -17,23 +17,31 @@ package com.twistral.konoblo;
 
 import java.util.Scanner;
 
+import static com.twistral.konoblo.CommonRestrictors.inRange;
+
 public class BasicCalculator {
 
     public static void add(KonobloConsole cns) {
-        int x = cns.readInt("Enter number #1: ");
-        int y = cns.readInt("Enter number #2: ");
+        cns.print("Enter number #1: ");
+        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        cns.print("Enter number #2: ");
+        int y = cns.requireInt(null, "Please enter a valid integer: ");
         cns.printf("%d + %d = %d\n", x, y, x+y);
     }
 
     public static void sub(KonobloConsole cns) {
-        int x = cns.readInt("Enter number #1: ");
-        int y = cns.readInt("Enter number #2: ");
+        cns.print("Enter number #1: ");
+        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        cns.print("Enter number #2: ");
+        int y = cns.requireInt(null, "Please enter a valid integer: ");
         cns.printf("%d - %d = %d\n", x, y, x-y);
     }
 
     public static void mul(KonobloConsole cns) {
-        int x = cns.readInt("Enter number #1: ");
-        int y = cns.readInt("Enter number #2: ");
+        cns.print("Enter number #1: ");
+        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        cns.print("Enter number #2: ");
+        int y = cns.requireInt(null, "Please enter a valid integer: ");
         cns.printf("%d * %d = %d\n", x, y, x*y);
     }
 
@@ -51,7 +59,8 @@ public class BasicCalculator {
     }
 
     public static void fiboLast(KonobloConsole cns) {
-        int x = cns.requireInt("Enter number: ", 2, Integer.MAX_VALUE);
+        cns.print("Enter number: ");
+        int x = cns.requireInt(inRange(2, 50), "Number must be in range [2,50]", "Try again: ");
         int a = 0, b = 1;
         for (int i = 2; i <= x; i++) {
             int next = a + b;
@@ -62,7 +71,8 @@ public class BasicCalculator {
     }
 
     public static void fiboAll(KonobloConsole cns) {
-        int x = cns.requireInt("Enter number: ", 2, Integer.MAX_VALUE);
+        cns.print("Enter number: ");
+        int x = cns.requireInt(inRange(2, 50), "Number must be in range [2,50]", "Try again: ");
         int a = 0, b = 1;
         cns.printf("Fibonacci(0) = 0\n");
         cns.printf("Fibonacci(1) = 1\n");
@@ -76,16 +86,17 @@ public class BasicCalculator {
 
     public static void main(String[] args) {
         final KonobloConsole cns = new KonobloConsole();
+        cns.setGreetingText(null);
 
         cns.setExitFunction(() -> {
             cns.println("Thanks for using this program!");
         });
 
-        cns.define("#A", BasicCalculator::mainMenu, cns.dirSepInt(1, 4, "#A1", "#A2", "#A3", "#A4"))
+        cns.define("#A", BasicCalculator::mainMenu, cns.dirSepInt(null, "Please ", 1, 4, "#A1", "#A2", "#A3", "#A4"))
                .define("#A1", BasicCalculator::add, cns.dirBack(1))
                .define("#A2", BasicCalculator::sub, cns.dirNext("#A"))
                .define("#A3", BasicCalculator::mul, cns.dirExit())
-               .define("#A4", BasicCalculator::fiboMenu, cns.dirSepInt(0, 1, "#A4.1", "#A4.2"))
+               .define("#A4", BasicCalculator::fiboMenu, cns.dirSepInt(null, null, 0, 1, "#A4.1", "#A4.2"))
                    .define("#A4.1", BasicCalculator::fiboLast, cns.dirExit())
                    .define("#A4.2", BasicCalculator::fiboAll, cns.dirExit());
 
