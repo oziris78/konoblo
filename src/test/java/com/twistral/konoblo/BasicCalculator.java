@@ -23,25 +23,25 @@ public class BasicCalculator {
 
     public static void add(KonobloConsole cns) {
         cns.print("Enter number #1: ");
-        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        int x = cns.requireInt("Please enter a valid integer: ");
         cns.print("Enter number #2: ");
-        int y = cns.requireInt(null, "Please enter a valid integer: ");
+        int y = cns.requireInt("Please enter a valid integer: ");
         cns.printf("%d + %d = %d\n", x, y, x+y);
     }
 
     public static void sub(KonobloConsole cns) {
         cns.print("Enter number #1: ");
-        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        int x = cns.requireInt("Please enter a valid integer: ");
         cns.print("Enter number #2: ");
-        int y = cns.requireInt(null, "Please enter a valid integer: ");
+        int y = cns.requireInt("Please enter a valid integer: ");
         cns.printf("%d - %d = %d\n", x, y, x-y);
     }
 
     public static void mul(KonobloConsole cns) {
         cns.print("Enter number #1: ");
-        int x = cns.requireInt(null, "Please enter a valid integer: ");
+        int x = cns.requireInt("Please enter a valid integer: ");
         cns.print("Enter number #2: ");
-        int y = cns.requireInt(null, "Please enter a valid integer: ");
+        int y = cns.requireInt("Please enter a valid integer: ");
         cns.printf("%d * %d = %d\n", x, y, x*y);
     }
 
@@ -60,7 +60,7 @@ public class BasicCalculator {
 
     public static void fiboLast(KonobloConsole cns) {
         cns.print("Enter number: ");
-        int x = cns.requireInt(inRange(2, 50), "Number must be in range [2,50]", "Try again: ");
+        int x = cns.requireInt("Try again: ", inRange(2, 50), "Number must be in range [2,50].");
         int a = 0, b = 1;
         for (int i = 2; i <= x; i++) {
             int next = a + b;
@@ -72,7 +72,7 @@ public class BasicCalculator {
 
     public static void fiboAll(KonobloConsole cns) {
         cns.print("Enter number: ");
-        int x = cns.requireInt(inRange(2, 50), "Number must be in range [2,50]", "Try again: ");
+        int x = cns.requireInt("Try again: ", inRange(2, 50), "Number must be in range [2,50].");
         int a = 0, b = 1;
         cns.printf("Fibonacci(0) = 0\n");
         cns.printf("Fibonacci(1) = 1\n");
