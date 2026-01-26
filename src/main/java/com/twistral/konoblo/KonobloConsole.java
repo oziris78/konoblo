@@ -29,8 +29,6 @@ public class KonobloConsole {
     private static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
             "customize or disable this message with setGreetingText(String) method.";
 
-    private static final Runnable EMPTY_RUNNABLE = () -> {};
-
     // State Related Objects
     private String greetingText;
     private final HashMap<String, State> states;
@@ -133,9 +131,7 @@ public class KonobloConsole {
 
 
     public void run() {
-        if (this.greetingText != null && !this.greetingText.isEmpty()) {
-            this.println(this.greetingText);
-        }
+        this.printlnIfValid(this.greetingText);
 
         try {
             this.stateStack.push(entryStateID);
@@ -329,23 +325,73 @@ public class KonobloConsole {
     // The following methods can and will throw an exception if something goes wrong
     // For %100 safe input reading use requiring methods
 
-    public String readString() { return scanner.nextLine(); }
-    public double readDouble() { return scanner.nextDouble(); }
-    public float readFloat() { return scanner.nextFloat(); }
-    public boolean readBoolean() { return scanner.nextBoolean(); }
-    public BigDecimal readBigDecimal() { return scanner.nextBigDecimal(); }
+    public String readString() {
+        return scanner.nextLine();
+    }
 
-    public byte readByte() { return scanner.nextByte(); }
-    public int readInt() { return scanner.nextInt(); }
-    public BigInteger readBigInteger() { return scanner.nextBigInteger(); }
-    public long readLong() { return scanner.nextLong(); }
-    public short readShort() { return scanner.nextShort(); }
+    public double readDouble() {
+        return Double.parseDouble(this.readString().trim());
+    }
 
-    public byte readByte(int radix) { return scanner.nextByte(radix); }
-    public int readInt(int radix) { return scanner.nextInt(radix); }
-    public BigInteger readBigInteger(int radix) { return scanner.nextBigInteger(radix); }
-    public long readLong(int radix) { return scanner.nextLong(radix); }
-    public short readShort(int radix) { return scanner.nextShort(radix); }
+    public float readFloat() {
+        return Float.parseFloat(this.readString().trim());
+    }
+
+    public BigDecimal readBigDecimal() {
+        return new BigDecimal(this.readString().trim());
+    }
+
+    public boolean readBoolean(String trueString, String falseString, boolean ignoreCase) {
+        if (trueString == null || falseString == null)
+            throw new KonobloException("Invalid parameters for readBoolean.");
+        if (trueString.equals(falseString))
+            throw new KonobloException("trueString and falseString can't be the same.");
+        if (trueString.trim().isEmpty() || falseString.trim().isEmpty())
+            throw new KonobloException("trueString and falseString can't be empty.");
+
+        final String input = this.readString().trim(); // can NEVER be null
+
+        if (ignoreCase) {
+            if (input.equalsIgnoreCase(trueString)) return true;
+            if (input.equalsIgnoreCase(falseString)) return false;
+        }
+        else {
+            if (input.equals(trueString)) return true;
+            if (input.equals(falseString)) return false;
+        }
+
+        throw new InputMismatchException();
+    }
+
+    public boolean readBoolean() {
+        return this.readBoolean("true", "false", true);
+    }
+
+    public byte readByte(int radix) {
+        return Byte.parseByte(this.readString().trim(), radix);
+    }
+
+    public int readInt(int radix) {
+        return Integer.parseInt(this.readString().trim(), radix);
+    }
+
+    public BigInteger readBigInteger(int radix) {
+        return new BigInteger(this.readString().trim(), radix);
+    }
+
+    public long readLong(int radix) {
+        return Long.parseLong(this.readString().trim(), radix);
+    }
+
+    public short readShort(int radix) {
+        return Short.parseShort(this.readString().trim(), radix);
+    }
+
+    public byte readByte() { return this.readByte(10); }
+    public int readInt() { return this.readInt(10); }
+    public BigInteger readBigInteger() { return this.readBigInteger(10); }
+    public long readLong() { return this.readLong(10); }
+    public short readShort() { return this.readShort(10); }
 
 
     /*///////////////////////////////////////////////////////////////*/
@@ -851,20 +897,16 @@ public class KonobloConsole {
     /*///////////////////////////////////////////////////////////////////////////*/
 
 
-    public Runnable getTerminateFunction() { return terminateFunction; }
-    public Runnable getExitFunction() { return exitFunction; }
     public String getGreetingText() { return greetingText; }
     public String getEntryStateID() { return entryStateID; }
+    public Runnable getExitFunction() { return exitFunction; }
+    public Runnable getTerminateFunction() { return terminateFunction; }
 
     public void setGreetingText(String greetingText) { this.greetingText = greetingText; }
     public void setEntryStateID(String entryStateID) { this.entryStateID = entryStateID; }
-
+    public void setExitFunction(Runnable exitFunction) { this.exitFunction = exitFunction; }
     public void setTerminateFunction(Runnable terminateFunction) {
-        this.terminateFunction = (terminateFunction != null) ? terminateFunction : EMPTY_RUNNABLE;
-    }
-
-    public void setExitFunction(Runnable exitFunction) {
-        this.exitFunction = (exitFunction != null) ? exitFunction : EMPTY_RUNNABLE;
+        this.terminateFunction = terminateFunction;
     }
 
 
