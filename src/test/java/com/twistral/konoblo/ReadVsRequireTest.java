@@ -46,7 +46,7 @@ public class ReadVsRequireTest {
         cns.define("#2", ReadVsRequireTest::f3, cns.dirNext("#3"));
         cns.define("#3", ReadVsRequireTest::f4, cns.dirExit());
 
-        cns.run();
+        cns.run("#0");
     }
 
 }

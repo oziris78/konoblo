@@ -101,7 +101,7 @@ public class BasicCalculator {
                    .define("#A4.1", BasicCalculator::fiboLast, cns.dirExit())
                    .define("#A4.2", BasicCalculator::fiboAll, cns.dirExit());
 
-        cns.run();
+        cns.run("#A");
     }
 
     public static void versionWithoutKonoblo() {

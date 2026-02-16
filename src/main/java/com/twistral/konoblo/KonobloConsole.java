@@ -29,13 +29,14 @@ public class KonobloConsole {
     private static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
             "customize or disable this message with setGreetingText(String) method.";
 
-    // State Related Objects
+    // Lifecycle Related Objects
     private String greetingText;
-    private final HashMap<String, State> states;
-    private final Stack<String> stateStack;
-    private String entryStateID;
     private Runnable exitFunction; // Always run at the end of each program
     private Runnable terminateFunction; // Only run when the program is intentionally terminated
+
+    // State Related Objects
+    private final HashMap<String, State> states;
+    private final Stack<String> stateStack;
 
     // Data (Object Instance) Storage
     private final HashMap<String, Object> storage;
@@ -68,8 +69,6 @@ public class KonobloConsole {
         this.stateStack = new Stack<>();
         this.terminateFunction = () -> {};
         this.exitFunction = () -> {};
-        this.entryStateID = null;
-
     }
 
     public KonobloConsole(PrintStream outStream, PrintStream errStream) {
@@ -112,28 +111,22 @@ public class KonobloConsole {
 
 
     public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Director director) {
-        if (ID == null)
-            throw new KonobloException("State ID can't be null.");
-        if (director == null)
-            throw new KonobloException("State director can't be null.");
+        Objects.requireNonNull(ID, "ID");
+        Objects.requireNonNull(function, "function");
+        Objects.requireNonNull(director, "director");
+
         if (this.states.containsKey(ID))
             throw new KonobloException("Duplicate state ID: %s.", ID);
 
-        if (function == null) // allow null functions but correct them to do nothing
-            function = cns -> {};
-
         this.states.put(ID, new State(ID, function, director));
-
-        // First time defining a state
-        if (entryStateID == null) {
-            this.entryStateID = ID;
-        }
 
         return this;
     }
 
 
-    public void run() {
+    public void run(String entryStateID) {
+        Objects.requireNonNull(entryStateID, "entryStateID");
+
         this.printlnIfValid(this.greetingText);
 
         try {
@@ -901,12 +894,10 @@ public class KonobloConsole {
 
 
     public String getGreetingText() { return greetingText; }
-    public String getEntryStateID() { return entryStateID; }
     public Runnable getExitFunction() { return exitFunction; }
     public Runnable getTerminateFunction() { return terminateFunction; }
 
     public void setGreetingText(String greetingText) { this.greetingText = greetingText; }
-    public void setEntryStateID(String entryStateID) { this.entryStateID = entryStateID; }
     public void setExitFunction(Runnable exitFunction) { this.exitFunction = exitFunction; }
     public void setTerminateFunction(Runnable terminateFunction) {
         this.terminateFunction = terminateFunction;
