@@ -42,8 +42,10 @@ public class KonobloConsole {
 
     // IO Objects
     private final PrintStream outStream, errStream;
-    private final boolean ownsScanner, ownsStreams;
+    private final boolean ownsStreams;
+
     private final Scanner scanner;
+    private final boolean ownsScanner;
 
 
     /*//////////////////////////////////////////////////////////////////////*/
@@ -67,6 +69,7 @@ public class KonobloConsole {
         this.terminateFunction = () -> {};
         this.exitFunction = () -> {};
         this.entryStateID = null;
+
     }
 
     public KonobloConsole(PrintStream outStream, PrintStream errStream) {
@@ -189,7 +192,6 @@ public class KonobloConsole {
     }
 
 
-
     /*///////////////////////////////////////////////////////////////////*/
     /*///////////////////////////  DIRECTORS  ///////////////////////////*/
     /*///////////////////////////////////////////////////////////////////*/
@@ -288,6 +290,7 @@ public class KonobloConsole {
     public void removeObject(String objectID) {
         storage.remove(objectID);
     }
+
 
     public void clearObjects() {
         storage.clear();
@@ -460,7 +463,7 @@ public class KonobloConsole {
 
     public boolean requireBoolean(String retryText) {
         return this.requireCore(
-            () -> this.readBoolean(), null, null, false, false, retryText, false
+                () -> this.readBoolean(), null, null, false, false, retryText, false
         );
     }
 
@@ -468,7 +471,7 @@ public class KonobloConsole {
                           String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readInt(radix), restrictor, restrictFailText, false, 0, retryText, false
+                () -> this.readInt(radix), restrictor, restrictFailText, false, 0, retryText, false
         );
     }
 
@@ -476,7 +479,7 @@ public class KonobloConsole {
                             String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readLong(radix), restrictor, restrictFailText, false, 0L, retryText, false
+                () -> this.readLong(radix), restrictor, restrictFailText, false, 0L, retryText, false
         );
     }
 
@@ -484,8 +487,8 @@ public class KonobloConsole {
                             String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readByte(radix), restrictor, restrictFailText,
-            false, (byte)0, retryText, false
+                () -> this.readByte(radix), restrictor, restrictFailText,
+                false, (byte)0, retryText, false
         );
     }
 
@@ -493,8 +496,8 @@ public class KonobloConsole {
                               String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readShort(radix), restrictor, restrictFailText,
-            false, (short)0, retryText, false
+                () -> this.readShort(radix), restrictor, restrictFailText,
+                false, (short)0, retryText, false
         );
     }
 
@@ -502,8 +505,8 @@ public class KonobloConsole {
                                         String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readBigInteger(radix), restrictor, restrictFailText,
-            false, null, retryText, false
+                () -> this.readBigInteger(radix), restrictor, restrictFailText,
+                false, null, retryText, false
         );
     }
 
@@ -511,7 +514,7 @@ public class KonobloConsole {
                                 String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readString(), restrictor, restrictFailText, false, null, retryText, false
+                () -> this.readString(), restrictor, restrictFailText, false, null, retryText, false
         );
     }
 
@@ -519,7 +522,7 @@ public class KonobloConsole {
                                         String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readBigDecimal(), restrictor, restrictFailText, false, null, retryText, false
+                () -> this.readBigDecimal(), restrictor, restrictFailText, false, null, retryText, false
         );
     }
 
@@ -527,7 +530,7 @@ public class KonobloConsole {
                                 String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readDouble(), restrictor, restrictFailText, false, 0d, retryText, false
+                () -> this.readDouble(), restrictor, restrictFailText, false, 0d, retryText, false
         );
     }
 
@@ -535,7 +538,7 @@ public class KonobloConsole {
                               String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readFloat(), restrictor, restrictFailText, false, 0f, retryText, false
+                () -> this.readFloat(), restrictor, restrictFailText, false, 0f, retryText, false
         );
     }
 
@@ -543,7 +546,7 @@ public class KonobloConsole {
 
     public boolean requireBooleanDef(boolean defValue) {
         return this.requireCore(
-            () -> this.readBoolean(), null, null, true, defValue, null, false
+                () -> this.readBoolean(), null, null, true, defValue, null, false
         );
     }
 
@@ -551,7 +554,7 @@ public class KonobloConsole {
                              String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readInt(radix), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readInt(radix), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -559,7 +562,7 @@ public class KonobloConsole {
                                String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readLong(radix), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readLong(radix), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -567,7 +570,7 @@ public class KonobloConsole {
                                String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readByte(radix), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readByte(radix), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -575,7 +578,7 @@ public class KonobloConsole {
                                  String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readShort(radix), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readShort(radix), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -583,8 +586,8 @@ public class KonobloConsole {
                                            String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readBigInteger(radix), restrictor, restrictFailText,
-            true, defValue, null, false
+                () -> this.readBigInteger(radix), restrictor, restrictFailText,
+                true, defValue, null, false
         );
     }
 
@@ -592,7 +595,7 @@ public class KonobloConsole {
                                    String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readString(), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readString(), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -609,7 +612,7 @@ public class KonobloConsole {
                                    String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readDouble(), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readDouble(), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -617,7 +620,7 @@ public class KonobloConsole {
                                  String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readFloat(), restrictor, restrictFailText, true, defValue, null, false
+                () -> this.readFloat(), restrictor, restrictFailText, true, defValue, null, false
         );
     }
 
@@ -625,7 +628,7 @@ public class KonobloConsole {
 
     public boolean requireBooleanTerm(String terminationText) {
         return this.requireCore(
-            () -> this.readBoolean(), null, null, false, false, terminationText, true
+                () -> this.readBoolean(), null, null, false, false, terminationText, true
         );
     }
 
@@ -633,7 +636,7 @@ public class KonobloConsole {
                               String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readInt(radix), restrictor, restrictFailText, false, 0, terminationText, true
+                () -> this.readInt(radix), restrictor, restrictFailText, false, 0, terminationText, true
         );
     }
 
@@ -641,7 +644,7 @@ public class KonobloConsole {
                                 String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readLong(radix), restrictor, restrictFailText, false, 0L, terminationText, true
+                () -> this.readLong(radix), restrictor, restrictFailText, false, 0L, terminationText, true
         );
     }
 
@@ -649,8 +652,8 @@ public class KonobloConsole {
                                 String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readByte(radix), restrictor, restrictFailText,
-            false, (byte)0, terminationText, true
+                () -> this.readByte(radix), restrictor, restrictFailText,
+                false, (byte)0, terminationText, true
         );
     }
 
@@ -658,8 +661,8 @@ public class KonobloConsole {
                                   String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readShort(radix), restrictor, restrictFailText,
-            false, (short)0, terminationText, true
+                () -> this.readShort(radix), restrictor, restrictFailText,
+                false, (short)0, terminationText, true
         );
     }
 
@@ -667,8 +670,8 @@ public class KonobloConsole {
                                             String restrictFailText, int radix)
     {
         return this.requireCore(
-            () -> this.readBigInteger(radix), restrictor, restrictFailText,
-            false, null, terminationText, true
+                () -> this.readBigInteger(radix), restrictor, restrictFailText,
+                false, null, terminationText, true
         );
     }
 
@@ -676,7 +679,7 @@ public class KonobloConsole {
                                     String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readString(), restrictor, restrictFailText, false, null, terminationText, true
+                () -> this.readString(), restrictor, restrictFailText, false, null, terminationText, true
         );
     }
 
@@ -684,8 +687,8 @@ public class KonobloConsole {
                                             String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readBigDecimal(), restrictor, restrictFailText,
-            false, null, terminationText, true
+                () -> this.readBigDecimal(), restrictor, restrictFailText,
+                false, null, terminationText, true
         );
     }
 
@@ -693,7 +696,7 @@ public class KonobloConsole {
                                     String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readDouble(), restrictor, restrictFailText, false, 0d, terminationText, true
+                () -> this.readDouble(), restrictor, restrictFailText, false, 0d, terminationText, true
         );
     }
 
@@ -701,7 +704,7 @@ public class KonobloConsole {
                                   String restrictFailText)
     {
         return this.requireCore(
-            () -> this.readFloat(), restrictor, restrictFailText, false, 0f, terminationText, true
+                () -> this.readFloat(), restrictor, restrictFailText, false, 0f, terminationText, true
         );
     }
 
@@ -784,7 +787,7 @@ public class KonobloConsole {
     }
 
     public BigInteger requireBigIntegerDef(BigInteger defValue,
-                             Predicate<BigInteger> restrictor, String restrictFailText)
+                                           Predicate<BigInteger> restrictor, String restrictFailText)
     {
         return this.requireBigIntegerDef(defValue, restrictor, restrictFailText, 10);
     }
@@ -818,7 +821,7 @@ public class KonobloConsole {
     }
 
     public BigInteger requireBigIntegerTerm(String terminationText,
-                                  Predicate<BigInteger> restrictor, String restrictFailText)
+                                            Predicate<BigInteger> restrictor, String restrictFailText)
     {
         return this.requireBigIntegerTerm(terminationText, restrictor, restrictFailText, 10);
     }

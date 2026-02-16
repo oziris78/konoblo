@@ -16,6 +16,7 @@ package com.twistral.konoblo;
 
 
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import static com.twistral.konoblo.CommonRestrictors.inRange;
 
