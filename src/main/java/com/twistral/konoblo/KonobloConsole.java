@@ -20,13 +20,13 @@ import java.io.PrintStream;
 import java.math.*;
 import java.util.*;
 import java.util.function.*;
-import com.twistral.konoblo.Director.DirectorType;
+
 import static com.twistral.konoblo.CommonRestrictors.*;
 
 
 public class KonobloConsole {
 
-    private static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
+    public static final String DEF_GREETING_TEXT = "Welcome to Konoblo! You can " +
             "customize or disable this message with setGreetingText(String) method.";
 
     // Lifecycle Related Objects
@@ -35,7 +35,8 @@ public class KonobloConsole {
     private Runnable terminateFunction; // Only run when the program is intentionally terminated
 
     // State Related Objects
-    private final HashMap<String, State> states;
+    private final HashMap<String, Consumer<KonobloConsole>> stateFunctions;
+    private final HashMap<String, Supplier<String>> stateDirectors;
     private final Stack<String> stateStack;
 
     // Data (Object Instance) Storage
@@ -65,7 +66,8 @@ public class KonobloConsole {
 
         this.greetingText = DEF_GREETING_TEXT;
         this.storage = new HashMap<>(64);
-        this.states = new HashMap<>(64);
+        this.stateFunctions = new HashMap<>(64);
+        this.stateDirectors = new HashMap<>(64);
         this.stateStack = new Stack<>();
         this.terminateFunction = () -> {};
         this.exitFunction = () -> {};
@@ -97,59 +99,49 @@ public class KonobloConsole {
     /*///////////////////////////////////////////////////////////////////////*/
 
 
-    private static final class State {
-        public final Consumer<KonobloConsole> function;
-        public final Director director;
-        public final String ID;
+    public void define(String stateID, Consumer<KonobloConsole> stateFunction) {
+        Objects.requireNonNull(stateID, "stateID");
+        Objects.requireNonNull(stateFunction, "stateFunction");
 
-        State(String ID, Consumer<KonobloConsole> function, Director director) {
-            this.function = function;
-            this.director = director;
-            this.ID = ID;
-        }
+        // Will replace the old function if this was an already defined state
+        this.stateFunctions.put(stateID, stateFunction);
     }
 
 
-    public KonobloConsole define(String ID, Consumer<KonobloConsole> function, Director director) {
-        Objects.requireNonNull(ID, "ID");
-        Objects.requireNonNull(function, "function");
-        Objects.requireNonNull(director, "director");
-
-        if (this.states.containsKey(ID))
-            throw new KonobloException("Duplicate state ID: %s.", ID);
-
-        this.states.put(ID, new State(ID, function, director));
-
-        return this;
+    // This Exception subclass is intentionally used to signal termination
+    private static final class KonobloTerminateSignal extends RuntimeException {
+        KonobloTerminateSignal() {
+            // no message, no throwable chaining, no stacktrace => NO COST
+            super(null, null, false, false);
+        }
     }
 
 
     public void run(String entryStateID) {
         Objects.requireNonNull(entryStateID, "entryStateID");
-
         this.printlnIfValid(this.greetingText);
 
         try {
             this.stateStack.push(entryStateID);
 
             while (true) {
-                // Get the current state ID
-                String currentStateID = this.stateStack.peek();
-                if (!this.states.containsKey(currentStateID)) {
-                    throw new KonobloException("No state with an ID of %s was found.", currentStateID);
+                String currentStateID = stateStack.peek();
+                if (!this.stateFunctions.containsKey(currentStateID)) {
+                    throw new KonobloException("State %s is not defined.", currentStateID);
                 }
 
-                // Get the current state using that ID and run its function
-                State curState = this.states.get(currentStateID);
-                curState.function.accept(this);
+                // Run the current state's function
+                Consumer<KonobloConsole> function = stateFunctions.get(currentStateID);
+                function.accept(this);
 
-                // Terminate if you come across an exit director
-                if (curState.director.type == DirectorType.EXIT) {
-                    break;
-                }
+                // Use the director to get the next ID and push it to the stateStack
+                boolean exit = !stateDirectors.containsKey(currentStateID);
+                if (exit) break;
 
-                // If not terminated, queue the next state ID to be looped over
-                String nextStateID = curState.director.nextIDSupplier.get();
+                Supplier<String> director = stateDirectors.get(currentStateID);
+                final String nextStateID = director.get();
+                if (nextStateID == null) break;
+
                 this.stateStack.push(nextStateID);
             }
         }
@@ -176,78 +168,97 @@ public class KonobloConsole {
     }
 
 
-    // This Exception subclass is intentionally used to signal termination
-    private static final class KonobloTerminateSignal extends RuntimeException {
-        KonobloTerminateSignal() {
-            // no message, no throwable chaining, no stacktrace => NO COST
-            super(null, null, false, false);
-        }
+    public void direct(String stateID, Supplier<String> director) {
+        Objects.requireNonNull(stateID, "stateID");
+        Objects.requireNonNull(director, "director");
+
+        // Only one director is allowed for each state
+        if (this.stateDirectors.containsKey(stateID))
+            throw new KonobloException("A director for stateID=%s is already defined!", stateID);
+
+        this.stateDirectors.put(stateID, director);
     }
 
 
-    /*///////////////////////////////////////////////////////////////////*/
-    /*///////////////////////////  DIRECTORS  ///////////////////////////*/
-    /*///////////////////////////////////////////////////////////////////*/
-
-
-    public Director dirExit() {
-        return new Director(DirectorType.EXIT, () -> "");
+    public void direct(String srcStateID, String destStateID) {
+        Objects.requireNonNull(destStateID, "destStateID");
+        this.direct(srcStateID, () -> destStateID);
     }
 
-    public Director dirNext(String nextID) {
-        return new Director(DirectorType.NEXT, () -> nextID);
-    }
 
-    public Director dirBack(int n) {
-        return new Director(DirectorType.BACK, () -> {
-            final int m = stateStack.size();
+    public void directBack(String stateID, int n) {
+        final Supplier<String> director = () -> {
+            final int m = this.stateStack.size();
             final int nextIndex = m - n - 1;
 
             if (nextIndex < 0) {
-                throw new KonobloException(
-                    "State stack cant go back %d times when it has %d elements.", n, m);
+                throw new KonobloException("Stack cant go back %d times when it has %d items!", n, m);
             }
 
-            return stateStack.get(nextIndex);
-        });
+            return this.stateStack.get(nextIndex);
+        };
+
+        this.direct(stateID, director);
     }
 
-    public Director dirSepInt(String restrictFailText, String retryText, int a, int b, String... options) {
-        if (options.length != b - a + 1) {
-            throw new KonobloException("You need to have exactly %d options.", b - a + 1);
+
+    public static final class Option<K> {
+        final K key;
+        final String stateID;
+
+        Option(K key, String stateID) {
+            this.key = key;
+            this.stateID = stateID;
         }
-
-        return new Director(DirectorType.SEP_INT, () -> {
-            int x = this.requireInt(retryText, inRange(a, b), restrictFailText);
-            return options[x-a];
-        });
     }
 
-    public Director dirSepStr(String restrictFailText, String retryText,
-                              String[] allowedInputs, String[] mappedIDs)
+    public Option<Integer> option(int key, String stateID) {
+        return new Option<Integer>(key, stateID);
+    }
+
+    public Option<String> option(String key, String stateID) {
+        return new Option<String>(key, stateID);
+    }
+
+    @SafeVarargs // to get rid of heap pollution warnings
+    public final void directStrSelect(String stateID, String retryText,
+                                      String restrictFailText, Option<String>... options)
     {
-        if (allowedInputs.length != mappedIDs.length) {
-            throw new KonobloException(
-                "Both arrays must have the same number of items: %d != %d.",
-                allowedInputs.length, mappedIDs.length
-            );
+        Objects.requireNonNull(options, "options");
+
+        Map<String, String> routes = new LinkedHashMap<>();
+        for (Option<String> option : options) {
+            Objects.requireNonNull(option, "option");
+            if (routes.containsKey(option.key)) {
+                throw new KonobloException("Duplicate option key: %s.", option.key);
+            }
+            routes.put(option.key, option.stateID);
         }
 
-        return new Director(DirectorType.SEP_STR, () -> {
-            String selectedID = this.requireString(
-                retryText, mustBeOneOf(allowedInputs), restrictFailText
-            );
+        this.direct(stateID, () -> {
+            String input = this.requireString(retryText, routes::containsKey, restrictFailText);
+            return routes.get(input);
+        });
+    }
 
-            int selectedIndex = 0;
-            while (selectedIndex < allowedInputs.length) {
-                if (allowedInputs[selectedIndex].equals(selectedID)) {
-                    break;
-                }
+    @SafeVarargs // to get rid of heap pollution warnings
+    public final void directIntSelect(String stateID, String retryText,
+                                      String restrictFailText, Option<Integer>... options)
+    {
+        Objects.requireNonNull(options, "options");
 
-                selectedIndex++;
+        Map<Integer, String> routes = new LinkedHashMap<>();
+        for (Option<Integer> option : options) {
+            Objects.requireNonNull(option, "option");
+            if (routes.containsKey(option.key)) {
+                throw new KonobloException("Duplicate option key: %s.", option.key);
             }
+            routes.put(option.key, option.stateID);
+        }
 
-            return mappedIDs[selectedIndex];
+        this.direct(stateID, () -> {
+            int input = this.requireInt(retryText, routes::containsKey, restrictFailText);
+            return routes.get(input);
         });
     }
 
@@ -454,6 +465,15 @@ public class KonobloConsole {
 
     /*//////////////////////// REQUIRE - ALL PARAMETER FUNCTIONS ////////////////////////*/
 
+    public boolean requireBoolean(String retryText, String trueString,
+                                  String falseString, boolean ignoreCase)
+    {
+        return this.requireCore(
+                () -> this.readBoolean(trueString, falseString, ignoreCase), null, null,
+                false, false, retryText, false
+        );
+    }
+
     public boolean requireBoolean(String retryText) {
         return this.requireCore(
                 () -> this.readBoolean(), null, null, false, false, retryText, false
@@ -537,6 +557,16 @@ public class KonobloConsole {
 
     /*//////////////////////////////////*/
 
+    public boolean requireBooleanDef(boolean defValue, String trueString,
+                                     String falseString, boolean ignoreCase)
+    {
+        return this.requireCore(
+            () -> this.readBoolean(trueString, falseString, ignoreCase), null, null,
+            true, defValue, null, false
+        );
+    }
+
+
     public boolean requireBooleanDef(boolean defValue) {
         return this.requireCore(
                 () -> this.readBoolean(), null, null, true, defValue, null, false
@@ -618,6 +648,15 @@ public class KonobloConsole {
     }
 
     /*//////////////////////////////////*/
+
+    public boolean requireBooleanTerm(String terminationText, String trueString,
+                                      String falseString, boolean ignoreCase)
+    {
+        return this.requireCore(
+            () -> this.readBoolean(trueString, falseString, ignoreCase), null, null,
+            false, false, terminationText, true
+        );
+    }
 
     public boolean requireBooleanTerm(String terminationText) {
         return this.requireCore(
@@ -889,7 +928,7 @@ public class KonobloConsole {
 
 
     /*///////////////////////////////////////////////////////////////////////////*/
-    /*///////////////////////////  GETTERS & SETTERS  ///////////////////////////*/
+    /*//////////////////////  GETTERS & SETTERS & HELPERS  //////////////////////*/
     /*///////////////////////////////////////////////////////////////////////////*/
 
 
@@ -902,11 +941,6 @@ public class KonobloConsole {
     public void setTerminateFunction(Runnable terminateFunction) {
         this.terminateFunction = terminateFunction;
     }
-
-
-    /*//////////////////////////////////////////////////////////////////////////*/
-    /*///////////////////////////  HELPER FUNCTIONS  ///////////////////////////*/
-    /*//////////////////////////////////////////////////////////////////////////*/
 
     private void printIfValid(String text) {
         if (text == null) return;

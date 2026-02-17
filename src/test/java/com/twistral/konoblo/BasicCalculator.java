@@ -18,7 +18,8 @@ package com.twistral.konoblo;
 import java.util.Scanner;
 import java.util.function.Consumer;
 
-import static com.twistral.konoblo.CommonRestrictors.inRange;
+import static com.twistral.konoblo.CommonRestrictors.*;
+
 
 public class BasicCalculator {
 
@@ -56,7 +57,7 @@ public class BasicCalculator {
     }
 
     public static void fiboMenu(KonobloConsole cns) {
-        cns.printf("Do you want to see all steps (0 for no, 1 for yes): ");
+        cns.printf("Do you want to see all steps (no/yes): ");
     }
 
     public static void fiboLast(KonobloConsole cns) {
@@ -93,13 +94,24 @@ public class BasicCalculator {
             cns.println("Thanks for using this program!");
         });
 
-        cns.define("#A", BasicCalculator::mainMenu, cns.dirSepInt(null, "Please ", 1, 4, "#A1", "#A2", "#A3", "#A4"))
-               .define("#A1", BasicCalculator::add, cns.dirBack(1))
-               .define("#A2", BasicCalculator::sub, cns.dirNext("#A"))
-               .define("#A3", BasicCalculator::mul, cns.dirExit())
-               .define("#A4", BasicCalculator::fiboMenu, cns.dirSepInt(null, null, 0, 1, "#A4.1", "#A4.2"))
-                   .define("#A4.1", BasicCalculator::fiboLast, cns.dirExit())
-                   .define("#A4.2", BasicCalculator::fiboAll, cns.dirExit());
+        cns.define("#A", BasicCalculator::mainMenu);
+        cns.define("#A1", BasicCalculator::add);
+        cns.define("#A2", BasicCalculator::sub);
+        cns.define("#A3", BasicCalculator::mul);
+        cns.define("#A4", BasicCalculator::fiboMenu);
+        cns.define("#A4a", BasicCalculator::fiboLast);
+        cns.define("#A4b", BasicCalculator::fiboAll);
+
+        cns.direct("#A", () -> {
+            int choice = cns.requireInt("Please enter an int in range [1,4]:", inRange(1,4), null);
+            return String.format("#A%d", choice); // #A1, #A2, #A3 or #A4
+        });
+        cns.directBack("#A1", 1);
+        cns.directBack("#A2", 1);
+        cns.direct("#A4", () -> {
+            boolean allSteps = cns.requireBoolean("Enter no/yes only: ", "yes", "no", false);
+            return allSteps ? "#A4b" : "#A4a";
+        });
 
         cns.run("#A");
     }
