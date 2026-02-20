@@ -3,17 +3,16 @@
 
 # Konoblo
 
-<b>Konoblo is a library for building powerful CLI tools in Java.</b>
+<b>Konoblo is a lightweight state driven framework for building CLI apps in Java.</b>
 
 Konoblo simplifies the creation of interactive command line programs by combining:
-- A structured state machine engine
-- Built-in input validation utilities
-- Selection based routing
+- A state defining and directing mechanism
+- Built-in input validation
 - ANSI color support
-- Clean and expressive API
 
-Instead of writing scattered loops, switch statements, and manual validation logic, you simply 
-define states and describe how they transition. Konoblo handles the control flow for you!
+Instead of writing scattered loops, switch statements and manual validation logic, you simply 
+define states and describe how they transition/direct to one and other. Konoblo handles the 
+entire control flow for you!
 
 
 # Simple Example
@@ -33,7 +32,7 @@ public class BasicCalculator {
         KonobloConsole cns = new KonobloConsole();
         cns.setGreetingText("Welcome to my program!");
 
-        // This function will be run when console terminated gracefully
+        // This function will be run when console terminates gracefully
         cns.setExitFunction(() -> {
             cns.println("Thanks for using this program!");
         });
@@ -73,10 +72,10 @@ public class BasicCalculator {
 
 Konoblo is built around a state machine model. You define states using 
 the `define(String, Consumer<KonobloConsole>)` method and define the routes between
-those states using the following methods:
-- `direct(...)`: dynamic direction/routing
-- `directStrSelect(...)`: string based selection
-- `directIntSelect(...)`: integer based selection
+those states using the following directing methods:
+- `direct(...)`: dynamic routing
+- `directStrSelect(...)`: routing based on string input
+- `directIntSelect(...)`: routing based on int input
 - `directBack(...)`: return to a previous state
 
 
@@ -131,7 +130,7 @@ you have a separate error printing stream.
 # ANSI Colors
 
 Konoblo also includes the `Colorizer`, which is a utility class for generating ANSI colored text output.
-Look <a href="https://github.com/oziris78/konoblo/blob/main/src/test/java/com/twistral/konoblo/ColorizerDemoTest.java">here</a> for an example.
+Look <a href="https://github.com/oziris78/konoblo/blob/main/src/test/java/com/twistral/konoblo/ColorizerDemoTest.java">here</a> for examples.
 
 
 
