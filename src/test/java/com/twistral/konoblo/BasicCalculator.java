@@ -103,11 +103,15 @@ public class BasicCalculator {
         cns.define("#A4b", BasicCalculator::fiboAll);
 
         cns.direct("#A", () -> {
-            int choice = cns.requireInt("Please enter an int in range [1,4]:", inRange(1,4), null);
+            int choice = cns.requireInt(
+                "Please enter an int in range [1,4]:",
+                inRange(1,4),
+                "Your input is not in the range [1,4]."
+            );
             return String.format("#A%d", choice); // #A1, #A2, #A3 or #A4
         });
-        cns.directBack("#A1", 1);
-        cns.directBack("#A2", 1);
+        cns.directBack("#A1", 1); // go back the state stack once, back to "#A"
+        cns.directBack("#A2", 1); // go back the state stack once, back to "#A"
         cns.direct("#A4", () -> {
             boolean allSteps = cns.requireBoolean("Enter no/yes only: ", "yes", "no", false);
             return allSteps ? "#A4b" : "#A4a";

@@ -50,6 +50,9 @@ public class ReadVsRequireTest {
         cns.direct("#1", "#2");
         cns.direct("#2", "#3");
 
+
+
+
         cns.run("#0");
     }
 
