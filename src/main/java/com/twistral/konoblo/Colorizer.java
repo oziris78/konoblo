@@ -19,7 +19,7 @@ package com.twistral.konoblo;
 
 /**
  * Utility class for applying ANSI SGR escape codes to text. Please note that
- * support for certain effects depends on terminal and font capabilities.
+ * support for certain effects heavily depends on terminal and font capabilities.
  */
 public final class Colorizer {
 

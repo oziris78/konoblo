@@ -13,16 +13,19 @@
 // limitations under the License.
 
 
+
 package com.twistral.konoblo;
+
 
 class KonobloException extends RuntimeException {
 
-    public KonobloException(String format, Object... args) {
+    KonobloException(String format, Object... args) {
         super(String.format(format, args));
     }
 
-    public KonobloException(String text) {
+    KonobloException(String text) {
         super(text);
     }
 
 }
+

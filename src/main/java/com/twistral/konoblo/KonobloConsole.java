@@ -21,8 +21,6 @@ import java.math.*;
 import java.util.*;
 import java.util.function.*;
 
-import static com.twistral.konoblo.CommonRestrictors.*;
-
 
 public class KonobloConsole {
 
@@ -73,20 +71,20 @@ public class KonobloConsole {
         this.exitFunction = () -> {};
     }
 
-    public KonobloConsole(PrintStream outStream, PrintStream errStream) {
-        this(outStream, errStream, true, new Scanner(System.in), false);
-    }
-
-    public KonobloConsole(PrintStream outAndErrStream) {
-        this(outAndErrStream, outAndErrStream, true, new Scanner(System.in), false);
-    }
-
     public KonobloConsole(PrintStream outStream, PrintStream errStream, Scanner scanner) {
         this(outStream, errStream, true, scanner, true);
     }
 
+    public KonobloConsole(PrintStream outStream, PrintStream errStream) {
+        this(outStream, errStream, true, new Scanner(System.in), false);
+    }
+
     public KonobloConsole(PrintStream outAndErrStream, Scanner scanner) {
         this(outAndErrStream, outAndErrStream, true, scanner, true);
+    }
+
+    public KonobloConsole(PrintStream outAndErrStream) {
+        this(outAndErrStream, outAndErrStream, true, new Scanner(System.in), false);
     }
 
     public KonobloConsole() {
@@ -99,6 +97,14 @@ public class KonobloConsole {
     /*///////////////////////////////////////////////////////////////////////*/
 
 
+    /**
+     * Defines a state along with its function. If a state with the
+     * same ID has already been defined, its associated function
+     * will be replaced by this function.
+     *
+     * @param stateID the unique identifier of the state, cant be null
+     * @param stateFunction the function of the defined state, cant be null
+     */
     public void define(String stateID, Consumer<KonobloConsole> stateFunction) {
         Objects.requireNonNull(stateID, "stateID");
         Objects.requireNonNull(stateFunction, "stateFunction");
@@ -117,6 +123,10 @@ public class KonobloConsole {
     }
 
 
+    /**
+     * Starts the console application with the specified entry state.
+     * @param entryStateID specifies which state is the entry/main/first state
+     */
     public void run(String entryStateID) {
         Objects.requireNonNull(entryStateID, "entryStateID");
         this.printlnIfValid(this.greetingText);
@@ -168,6 +178,13 @@ public class KonobloConsole {
     }
 
 
+    /**
+     * Assigns a director to the specified state. This director has to return a
+     * valid ID result, otherwise you will get an exception in {@link #run(String)} method.
+     *
+     * @param stateID the ID of the specified state, cant be null
+     * @param director the director of the specified state, cant be null
+     */
     public void direct(String stateID, Supplier<String> director) {
         Objects.requireNonNull(stateID, "stateID");
         Objects.requireNonNull(director, "director");
@@ -180,12 +197,27 @@ public class KonobloConsole {
     }
 
 
+    /**
+     * Defines a one-to-one direction between two states. This means the source
+     * state will always ONLY direct to the destination state.
+     *
+     * @param srcStateID ID of the source state, cant be null
+     * @param destStateID ID of the destination state, cant be null
+     */
     public void direct(String srcStateID, String destStateID) {
         Objects.requireNonNull(destStateID, "destStateID");
         this.direct(srcStateID, () -> destStateID);
     }
 
 
+    /**
+     * Directs the given state to a previously visited state in the
+     * state stack according to the n parameter.
+     *
+     * @param stateID ID of the specified state, cant be null
+     * @param n how many steps the state will go back in the
+     *          state stack, needs to be a positive int
+     */
     public void directBack(String stateID, int n) {
         final Supplier<String> director = () -> {
             final int m = this.stateStack.size();
@@ -220,6 +252,23 @@ public class KonobloConsole {
         return new Option<String>(key, stateID);
     }
 
+
+    /**
+     * Defines a selection based redirection for a specified state using String keys. <br><br>
+     *
+     * When the console transitions to the specified state, the user will be prompted
+     * for input via {@link #requireString(String, Predicate, String)}. The input must
+     * match one of the provided option keys. If a valid key is entered, the console
+     * will redirect to the state associated with that key.
+     *
+     * @param stateID the ID of the specified state, <b>can't be null</b>
+     * @param retryText the message displayed when input parsing fails, <b>can be null</b>
+     * @param restrictFailText the message displayed when the input is declined by the
+     *                         defined restrictor (it doesn't match any available
+     *                         option), <b>can be null</b>
+     * @param options the selectable key to state mappings,
+     *                <b>cant be null or contain null items</b>
+     */
     @SafeVarargs // to get rid of heap pollution warnings
     public final void directStrSelect(String stateID, String retryText,
                                       String restrictFailText, Option<String>... options)
@@ -241,6 +290,25 @@ public class KonobloConsole {
         });
     }
 
+
+
+
+    /**
+     * Defines a selection based redirection for a specified state using int keys. <br><br>
+     *
+     * When the console transitions to the specified state, the user will be prompted
+     * for input via {@link #requireInt(String, Predicate, String)}. The input must
+     * match one of the provided option keys. If a valid key is entered, the console
+     * will redirect to the state associated with that key.
+     *
+     * @param stateID the ID of the specified state, <b>can't be null</b>
+     * @param retryText the message displayed when input parsing fails, <b>can be null</b>
+     * @param restrictFailText the message displayed when the input is declined by the
+     *                         defined restrictor (it doesn't match any available
+     *                         option), <b>can be null</b>
+     * @param options the selectable key to state mappings,
+     *                <b>cant be null or contain null items</b>
+     */
     @SafeVarargs // to get rid of heap pollution warnings
     public final void directIntSelect(String stateID, String retryText,
                                       String restrictFailText, Option<Integer>... options)
@@ -437,10 +505,6 @@ public class KonobloConsole {
             // Catch #1 InputMismatchException: Real bad input was given (recoverable)
             //          KonobloInputReject: Good input was given but rejected via restrictions
             catch (InputMismatchException | KonobloInputReject e) {
-                if (scanner.hasNextLine()) {
-                    this.scanner.nextLine(); // CONSUME INVALID INPUT
-                }
-
                 if (useDefaultValue) {
                     return defaultValue;
                 }

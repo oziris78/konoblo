@@ -23,8 +23,13 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 
+/**
+ * This is an utility class containing many reusable and commonly used restrictors.
+ */
 public class CommonRestrictors {
 
+    // No constructor
+    private CommonRestrictors() {}
 
     /*///////////////// STRING RESTRICTORS /////////////////*/
 
@@ -201,6 +206,5 @@ public class CommonRestrictors {
     public static Predicate<Integer> max(int maxInclusive) {
         return x -> x <= maxInclusive;
     }
-
 
 }
